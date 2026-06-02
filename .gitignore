@@ -1,0 +1,14 @@
+node_modules
+.next
+dist
+coverage
+.env
+.env.*
+.env.local
+.env.*.local
+*.log
+server/node_modules
+server/dist
+server/.env
+client/node_modules
+client/.next
