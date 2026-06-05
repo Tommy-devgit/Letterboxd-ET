@@ -7,94 +7,69 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role {
-  USER
-  CONTRIBUTOR
-  MODERATOR
-  ADMIN
-}
-
 enum CreditRole {
   ACTOR
   DIRECTOR
   WRITER
   PRODUCER
   CINEMATOGRAPHER
+  EDITOR
   COMPOSER
 }
 
 model User {
-  id             String      @id @default(cuid())
-  email          String      @unique
-  username       String      @unique
-  displayName    String
+  id             String         @id @default(uuid())
+  username       String         @unique
+  email          String         @unique
+  profilePicture String?
   bio            String?
-  avatarUrl      String?
-  role           Role        @default(USER)
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
-  reviews        Review[]
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
   ratings        Rating[]
-  watchlistItems Watchlist[]
+  reviews        Review[]
+  watchlist      Watchlist[]
+  watchedMovies  WatchedMovie[]
+  favorites      Favorite[]
   lists          List[]
-  followers      Follow[]    @relation("followers")
-  following      Follow[]    @relation("following")
+  followers      Follow[]       @relation("UserFollowers")
+  following      Follow[]       @relation("UserFollowing")
 }
 
 model Movie {
-  id              String         @id @default(cuid())
-  slug            String         @unique
-  title           String
-  originalTitle   String?
-  synopsis        String?
-  releaseDate     DateTime?
-  runtimeMinutes  Int?
-  posterUrl       String?
-  trailerUrl      String?
-  country         String         @default("Ethiopia")
-  primaryLanguage String         @default("am")
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-  credits         MovieCredit[]
-  genres          MovieGenre[]
-  reviews         Review[]
-  ratings         Rating[]
-  watchlistItems  Watchlist[]
-  availability    Availability[]
-  listItems       ListItem[]
+  id             String         @id @default(uuid())
+  title          String
+  originalTitle  String?
+  slug           String         @unique
+  synopsis       String?
+  releaseDate    DateTime?
+  runtimeMinutes Int?
+  posterUrl      String?
+  backdropUrl    String?
+  trailerUrl     String?
+  country        String?
+  language       String?
+  averageRating  Float          @default(0)
+  ratingsCount   Int            @default(0)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  genres         MovieGenre[]
+  credits        MovieCredit[]
+  ratings        Rating[]
+  reviews        Review[]
+  watchlistedBy  Watchlist[]
+  watchedBy      WatchedMovie[]
+  favoritedBy    Favorite[]
+  listMovies     ListMovie[]
+  sources        MovieSource[]
+  trailers       MovieTrailer[]
 
   @@index([title])
   @@index([originalTitle])
-}
-
-model Person {
-  id        String        @id @default(cuid())
-  slug      String        @unique
-  name      String
-  bio       String?
-  imageUrl  String?
-  bornAt    DateTime?
-  credits   MovieCredit[]
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
-}
-
-model MovieCredit {
-  movieId   String
-  personId  String
-  role      CreditRole
-  character String?
-  order     Int        @default(0)
-  movie     Movie      @relation(fields: [movieId], references: [id], onDelete: Cascade)
-  person    Person     @relation(fields: [personId], references: [id], onDelete: Cascade)
-
-  @@id([movieId, personId, role])
-  @@index([personId, role])
+  @@index([releaseDate])
 }
 
 model Genre {
-  id     String       @id @default(cuid())
-  slug   String       @unique
+  id     String       @id @default(uuid())
   name   String       @unique
   movies MovieGenre[]
 }
@@ -106,76 +81,124 @@ model MovieGenre {
   genre   Genre  @relation(fields: [genreId], references: [id], onDelete: Cascade)
 
   @@id([movieId, genreId])
+  @@index([genreId])
+}
+
+model Person {
+  id        String        @id @default(uuid())
+  fullName  String
+  bio       String?
+  birthDate DateTime?
+  photoUrl  String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  credits   MovieCredit[]
+
+  @@index([fullName])
+}
+
+model MovieCredit {
+  id            String     @id @default(uuid())
+  movieId       String
+  personId      String
+  role          CreditRole
+  characterName String?
+  movie         Movie      @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  person        Person     @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  @@unique([movieId, personId, role, characterName])
+  @@index([movieId, role])
+  @@index([personId, role])
+}
+
+model Rating {
+  userId    String
+  movieId   String
+  rating    Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movie     Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
+
+  @@id([userId, movieId])
+  @@index([movieId])
 }
 
 model Review {
-  id               String   @id @default(cuid())
-  body             String
-  containsSpoilers Boolean  @default(false)
-  userId           String
-  movieId          String
-  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  movie            Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  id         String   @id @default(uuid())
+  userId     String
+  movieId    String
+  content    String
+  likesCount Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movie      Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
 
   @@unique([userId, movieId])
   @@index([movieId, createdAt])
 }
 
-model Rating {
-  id        String   @id @default(cuid())
-  value     Decimal  @db.Decimal(2, 1)
-  userId    String
-  movieId   String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  movie     Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([userId, movieId])
-  @@index([movieId])
-}
-
 model Watchlist {
   userId    String
   movieId   String
+  createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   movie     Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
 
   @@id([userId, movieId])
+  @@index([movieId])
+}
+
+model WatchedMovie {
+  userId    String
+  movieId   String
+  watchedAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movie     Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
+
+  @@id([userId, movieId])
+  @@index([movieId])
+}
+
+model Favorite {
+  userId    String
+  movieId   String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movie     Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
+
+  @@id([userId, movieId])
+  @@index([movieId])
 }
 
 model Follow {
   followerId  String
   followingId String
-  follower    User     @relation("following", fields: [followerId], references: [id], onDelete: Cascade)
-  following   User     @relation("followers", fields: [followingId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
+  follower    User     @relation("UserFollowing", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("UserFollowers", fields: [followingId], references: [id], onDelete: Cascade)
 
   @@id([followerId, followingId])
+  @@index([followingId])
 }
 
 model List {
-  id          String     @id @default(cuid())
-  slug        String
+  id          String      @id @default(uuid())
+  userId      String
   title       String
   description String?
-  isPublic    Boolean    @default(true)
-  userId      String
-  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  items       ListItem[]
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movies      ListMovie[]
 
-  @@unique([userId, slug])
+  @@index([userId])
 }
 
-model ListItem {
+model ListMovie {
   listId   String
   movieId  String
-  note     String?
   position Int
   list     List   @relation(fields: [listId], references: [id], onDelete: Cascade)
   movie    Movie  @relation(fields: [movieId], references: [id], onDelete: Cascade)
@@ -184,17 +207,33 @@ model ListItem {
   @@index([movieId])
 }
 
-model Availability {
-  id         String    @id @default(cuid())
-  movieId    String
-  provider   String
-  url        String?
-  region     String    @default("ET")
-  accessType String
-  startsAt   DateTime?
-  endsAt     DateTime?
-  movie      Movie     @relation(fields: [movieId], references: [id], onDelete: Cascade)
-  createdAt  DateTime  @default(now())
+model MovieSource {
+  id          String   @id @default(uuid())
+  movieId     String?
+  sourceName  String
+  externalId  String?
+  sourceUrl   String
+  scrapedData Json
+  createdAt   DateTime @default(now())
+  movie       Movie?   @relation(fields: [movieId], references: [id], onDelete: SetNull)
 
-  @@index([movieId, region])
+  @@index([movieId])
+  @@index([sourceName, externalId])
+}
+
+model ProductionCompany {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  logoUrl   String?
+  createdAt DateTime @default(now())
+}
+
+model MovieTrailer {
+  id         String @id @default(uuid())
+  movieId    String
+  title      String
+  youtubeUrl String
+  movie      Movie  @relation(fields: [movieId], references: [id], onDelete: Cascade)
+
+  @@index([movieId])
 }
