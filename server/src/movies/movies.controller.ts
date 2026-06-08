@@ -1,8 +1,8 @@
-import { Controller, Get, Query } from "@nestjs/common";
-import { MovieQueryDto } from "./dto/movie-query.dto";
-import { MoviesService } from "./movies.service";
+import { Controller, Get, Param, Query } from '@nestjs/common';
+import { MovieQueryDto } from './dto/movie-query.dto';
+import { MoviesService } from './movies.service';
 
-@Controller("movies")
+@Controller('movies')
 export class MoviesController {
   constructor(private readonly moviesService: MoviesService) {}
 
@@ -11,8 +11,13 @@ export class MoviesController {
     return this.moviesService.findMany(query);
   }
 
-  @Get("featured")
+  @Get('featured')
   featured() {
     return this.moviesService.featured();
+  }
+
+  @Get(':slug')
+  getBySlug(@Param('slug') slug: string) {
+    return this.moviesService.getBySlug(slug);
   }
 }

@@ -1,9 +1,10 @@
-import { Module } from "@nestjs/common";
-import { MoviesController } from "./movies.controller";
-import { MoviesService } from "./movies.service";
+import { Module } from '@nestjs/common';
+import { MoviesController } from './movies.controller';
+import { MoviesService } from './movies.service';
 
 @Module({
   controllers: [MoviesController],
-  providers: [MoviesService]
+  providers: [MoviesService],
+  exports: [MoviesService], // exported so RatingsService can call recomputeStats
 })
 export class MoviesModule {}
