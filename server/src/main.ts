@@ -20,7 +20,11 @@ async function bootstrap() {
     })
   );
 
-  await app.listen(config.get<number>("PORT") ?? 4000);
+  const port = config.get<number>("PORT") ?? 4000;
+
+  await app.listen(port);
+
+  console.log(`Server running at: http://localhost:${port}/api`);
 }
 
 void bootstrap();
