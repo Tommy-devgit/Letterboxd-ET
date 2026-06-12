@@ -1,134 +1,141 @@
-import { MovieCard } from "@/components/movie-card";
-import { LinkButton } from "@/components/ui/button";
-import { getFeaturedMovies } from "@/lib/api";
+import Link from 'next/link';
+import { ArrowRight, Star, Users, Film, BookOpen } from 'lucide-react';
+import { HeroBanner } from '@/components/common/hero-banner';
+import { SectionHeader } from '@/components/common/section-header';
+import { MovieCard } from '@/components/movie/movie-card';
+import { getFeaturedMovies, getGenres } from '@/lib/api';
 
-const platformStats = [
-  { label: "Core stack", value: "Next + Nest" },
-  { label: "Database", value: "Postgres" },
-  { label: "Search path", value: "FTS first" }
+const STATS = [
+  { value: '500+', label: 'Ethiopian Films', icon: Film },
+  { value: '129', label: 'Filmmakers', icon: Users },
+  { value: '4.4★', label: 'Avg Rating', icon: Star },
+  { value: '861', label: 'Trailers', icon: BookOpen },
 ];
 
-const productPillars = [
-  {
-    title: "Movie profiles",
-    body: "Synopsis, cast, director, trailer, ratings, reviews, posters, and local availability."
-  },
-  {
-    title: "Community graph",
-    body: "Watchlists, favorites, follows, lists, and reviews turn the catalog into a social platform."
-  },
-  {
-    title: "Ethiopian context",
-    body: "Amharic and English support, cinema schedules, festival coverage, and Ethiopian film history."
-  }
-];
+const GENRES = ['Drama', 'Comedy', 'Romance', 'Action', 'Documentary', 'Historical', 'Thriller', 'Social'];
 
-const architecture = ["Next.js", "NestJS API", "PostgreSQL", "Prisma", "Redis", "Cloudflare R2"];
-
-export default async function Home() {
+export default async function HomePage() {
   const movies = await getFeaturedMovies();
+  const hero = movies[0];
+  const featured = movies.slice(1, 7);
 
   return (
-    <main className="mx-auto grid w-full max-w-7xl gap-12 px-4 py-5 sm:px-6 lg:px-8">
-      <header className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-5">
-        <div className="flex items-center gap-3">
-          <div className="grid h-11 w-11 place-items-center rounded-full bg-primary text-sm font-black text-primary-foreground">
-            LE
+    <div className="flex flex-col gap-0">
+      {/* Hero */}
+      {hero && (
+        <section className="px-4 pt-6 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl">
+            <HeroBanner movie={hero} />
           </div>
-          <div>
-            <p className="text-xs font-semibold uppercase text-primary">Ethiopian cinema platform</p>
-            <h1 className="text-xl font-black">Letterboxd ET</h1>
-          </div>
-        </div>
+        </section>
+      )}
 
-        <nav className="flex flex-wrap items-center gap-2" aria-label="Primary navigation">
-          <LinkButton href="#movies" variant="ghost">Movies</LinkButton>
-          <LinkButton href="#architecture" variant="ghost">Architecture</LinkButton>
-          <LinkButton href="#roadmap" variant="ghost">Roadmap</LinkButton>
-          <LinkButton href="#movies">Explore</LinkButton>
-        </nav>
-      </header>
-
-      <section className="grid min-h-[32rem] items-center gap-8 lg:grid-cols-[1.05fr_0.95fr]">
-        <div className="grid gap-6">
-          <div className="grid gap-4">
-            <p className="text-sm font-semibold uppercase text-primary">Letterboxd + IMDb for Ethiopia</p>
-            <h2 className="max-w-3xl text-5xl font-black leading-[0.95] tracking-normal sm:text-7xl">
-              Discover, track, and review Ethiopian films.
-            </h2>
-            <p className="max-w-2xl text-lg leading-8 text-muted-foreground">
-              A scalable social catalog for Ethiopian cinema with bilingual discovery, structured movie metadata,
-              watchlists, ratings, reviews, lists, and local availability.
-            </p>
-          </div>
-
-          <dl className="grid gap-3 sm:grid-cols-3">
-            {platformStats.map((stat) => (
-              <div key={stat.label} className="border-l-2 border-primary bg-surface px-4 py-3">
-                <dt className="text-sm text-muted-foreground">{stat.label}</dt>
-                <dd className="text-xl font-black">{stat.value}</dd>
+      {/* Stats bar */}
+      <section className="mt-8 border-y border-border bg-surface/50">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <dl className="grid grid-cols-2 divide-x divide-border sm:grid-cols-4">
+            {STATS.map(({ value, label, icon: Icon }) => (
+              <div key={label} className="flex items-center gap-3 px-6 py-5">
+                <Icon className="h-5 w-5 shrink-0 text-primary" />
+                <div>
+                  <dd className="text-xl font-black">{value}</dd>
+                  <dt className="text-xs text-muted-foreground">{label}</dt>
+                </div>
               </div>
             ))}
           </dl>
         </div>
+      </section>
 
-        <div className="grid gap-4 rounded-lg border border-border bg-surface p-4">
-          <div>
-            <p className="text-xs font-semibold uppercase text-primary">Featured now</p>
-            <h2 className="text-2xl font-black">Catalog preview</h2>
-          </div>
-          <div className="grid gap-4">
-            {movies.slice(0, 3).map((movie, index) => (
-              <div key={movie.id} className="grid grid-cols-[5rem_1fr] gap-3 rounded-md bg-background/70 p-2">
-                <div className="rounded bg-linear-to-br from-emerald-900 via-amber-700 to-red-900" />
-                <div>
-                  <h3 className="font-bold">{movie.title}</h3>
-                  <p className="text-sm text-muted-foreground">{movie.releaseYear}</p>
-                  <p className="text-sm font-semibold text-primary">
-                    {movie.averageRating.toFixed(1)} average / {movie.reviewCount} reviews
-                  </p>
-                </div>
-              </div>
+      <div className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        {/* Featured films grid */}
+        <section className="mb-14">
+          <SectionHeader
+            title="Featured Films"
+            subtitle="Ethiopian Cinema"
+            href="/movies"
+            className="mb-6"
+          />
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+            {featured.map((movie) => (
+              <MovieCard key={movie.id} movie={movie} variant="compact" />
             ))}
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section id="movies" className="grid gap-4">
-        <div>
-          <p className="text-sm font-semibold uppercase text-primary">SEO-ready catalog</p>
-          <h2 className="text-3xl font-black">Movie profiles with community data</h2>
-        </div>
+        {/* Genres */}
+        <section className="mb-14">
+          <SectionHeader
+            title="Browse by Genre"
+            subtitle="Explore"
+            href="/genres"
+            className="mb-6"
+          />
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
+            {GENRES.map((genre) => (
+              <Link
+                key={genre}
+                href={`/movies?genre=${encodeURIComponent(genre)}`}
+                className="group flex flex-col items-center gap-2 rounded-xl border border-border bg-surface px-3 py-4 text-center transition-all hover:border-primary/40 hover:bg-primary/5"
+              >
+                <span className="text-sm font-semibold group-hover:text-primary transition-colors">
+                  {genre}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </section>
 
-        <div className="grid gap-4 md:grid-cols-3">
-          {movies.map((movie, index) => (
-            <MovieCard key={movie.id} movie={movie} tone={["green", "gold", "red"][index % 3] as "green" | "gold" | "red"} />
-          ))}
-        </div>
-      </section>
+        {/* All recent movies */}
+        <section className="mb-14">
+          <SectionHeader
+            title="Recent Additions"
+            subtitle="New to Letterboxd ET"
+            href="/movies"
+            className="mb-6"
+          />
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+            {movies.map((movie) => (
+              <MovieCard key={movie.id} movie={movie} />
+            ))}
+          </div>
+        </section>
 
-      <section id="architecture" className="grid gap-4 rounded-lg border border-border bg-surface p-5">
-        <div>
-          <p className="text-sm font-semibold uppercase text-primary">Scalable stack</p>
-          <h2 className="text-3xl font-black">Architecture foundation</h2>
-        </div>
-        <div className="grid gap-3 md:grid-cols-6">
-          {architecture.map((item) => (
-            <div key={item} className="rounded-md border border-border bg-background p-4 text-center font-bold">
-              {item}
+        {/* CTA */}
+        <section className="overflow-hidden rounded-2xl border border-border bg-surface">
+          <div className="relative p-8 sm:p-12">
+            <div className="absolute inset-0 bg-linear-to-br from-primary/5 via-transparent to-accent/5" />
+            <div className="relative grid gap-6 sm:grid-cols-2 sm:items-center">
+              <div>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-primary">
+                  Join the community
+                </p>
+                <h2 className="mb-3 text-3xl font-black leading-tight">
+                  Track every Ethiopian film you watch.
+                </h2>
+                <p className="text-muted-foreground leading-6">
+                  Keep a diary, write reviews, create lists, and connect with other Ethiopian cinema fans.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-3 sm:justify-end">
+                <Link
+                  href="/register"
+                  className="inline-flex h-11 items-center gap-2 rounded-lg bg-primary px-6 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+                >
+                  Create account
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+                <Link
+                  href="/movies"
+                  className="inline-flex h-11 items-center gap-2 rounded-lg border border-border px-6 text-sm font-semibold transition-colors hover:bg-muted"
+                >
+                  Browse films
+                </Link>
+              </div>
             </div>
-          ))}
-        </div>
-      </section>
-
-      <section id="roadmap" className="grid gap-4 md:grid-cols-3">
-        {productPillars.map((pillar) => (
-          <article key={pillar.title} className="grid gap-3 rounded-lg border border-border bg-surface p-5">
-            <h2 className="text-xl font-black">{pillar.title}</h2>
-            <p className="leading-7 text-muted-foreground">{pillar.body}</p>
-          </article>
-        ))}
-      </section>
-    </main>
+          </div>
+        </section>
+      </div>
+    </div>
   );
 }

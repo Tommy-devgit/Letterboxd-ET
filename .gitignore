@@ -12,3 +12,6 @@ server/dist
 server/.env
 client/node_modules
 client/.next
+
+
+etmdb.db

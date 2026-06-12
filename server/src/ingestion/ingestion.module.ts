@@ -4,11 +4,19 @@ import { MovieImporter } from './importers/movie.importer';
 import { PersonImporter } from './importers/person.importer';
 import { TrailerImporter } from './importers/trailer.importer';
 import { IngestionService } from './services/ingestion.service';
+import { EtmdbIngestionService } from './services/etmdb-ingestion.service';
 import { IngestionController } from './ingestion.controller';
 
 @Module({
   controllers: [IngestionController],
-  providers: [GenreImporter, PersonImporter, MovieImporter, TrailerImporter, IngestionService],
-  exports: [IngestionService],
+  providers: [
+    GenreImporter,
+    PersonImporter,
+    MovieImporter,
+    TrailerImporter,
+    IngestionService,
+    EtmdbIngestionService,
+  ],
+  exports: [IngestionService, EtmdbIngestionService],
 })
 export class IngestionModule {}

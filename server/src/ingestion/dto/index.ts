@@ -43,4 +43,8 @@ export interface MovieDTO {
   source: MovieSourceDTO;
   countryCode?: string;
   languageCode?: string;
+  // External IDs — populated by ETMDB transformer for cross-source matching
+  etmdbId?: number;
+  imdbId?: string;
+  tmdbId?: number;
 }

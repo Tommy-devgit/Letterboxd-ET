@@ -28,6 +28,7 @@ enum SourceName {
   SODERE
   YOUTUBE
   MANUAL
+  ETMDB
 }
 
 model User {
@@ -76,6 +77,7 @@ model Movie {
   imdbId   String?
   tmdbId   Int?
   sodereId String?
+  etmdbId  Int?
 
   averageRating Float @default(0)
   ratingsCount  Int   @default(0)
@@ -115,6 +117,9 @@ model Movie {
   @@index([originalTitle])
   @@index([releaseDate])
   @@index([slug])
+  @@index([etmdbId])
+  @@index([tmdbId])
+  @@index([imdbId])
 }
 
 model Genre {
