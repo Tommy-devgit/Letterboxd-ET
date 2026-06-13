@@ -1,26 +1,71 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --color-background: #101418;
+  --color-surface: #161B22;
+  --color-surface-raised: #1F2937;
+  --color-accent: #D4A373;
+  --color-accent-muted: #C89F65;
+  --color-foreground: #F8FAFC;
+  --color-foreground-muted: #CBD5E1;
+  --color-text-muted: #64748B;
+  --color-border: #2D3748;
+  --color-border-muted: #1E2530;
+  --color-ring: #D4A373;
+  --color-rating: #F59E0B;
+  --color-success: #22C55E;
+  --color-destructive: #EF4444;
+  --color-card: #161B22;
+  --color-card-foreground: #F8FAFC;
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "Cascadia Code", monospace;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
   }
-}
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: #101418;
+    color: #f8fafc;
+    min-height: 100vh;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #161b22;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #2d3748;
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #d4a373;
+  }
+
+  ::selection {
+    background-color: #d4a373;
+    color: #101418;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
 }
