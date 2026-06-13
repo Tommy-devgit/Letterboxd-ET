@@ -1,146 +1,26 @@
 @import "tailwindcss";
 
-/* ─── Design tokens ─────────────────────────────────────────────────────────── */
-
 :root {
-  /* Core palette */
-  --background: #0e1014;
-  --foreground: #f0ebe2;
-  --surface: #161a20;
-  --surface-raised: #1c2128;
-  --muted: #232930;
-  --muted-foreground: #8b95a1;
-  --border: #2e3540;
-
-  /* Brand – Ethiopian gold */
-  --primary: #ddb84a;
-  --primary-foreground: #13100a;
-  --primary-muted: rgba(221, 184, 74, 0.12);
-
-  /* Accent – Ethiopian green */
-  --accent: #34a46a;
-  --accent-foreground: #ffffff;
-  --accent-muted: rgba(52, 164, 106, 0.12);
-
-  /* Danger */
-  --destructive: #c0392b;
-
-  /* Typography */
-  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  --font-mono: 'SFMono-Regular', Consolas, monospace;
-
-  /* Radius */
-  --radius: 0.5rem;
-  --radius-lg: 0.75rem;
-  --radius-xl: 1rem;
+  --background: #ffffff;
+  --foreground: #171717;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-surface: var(--surface);
-  --color-surface-raised: var(--surface-raised);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-border: var(--border);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-mono);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
 }
 
-/* ─── Base ──────────────────────────────────────────────────────────────────── */
-
-*, *::before, *::after {
-  box-sizing: border-box;
-}
-
-html {
-  scroll-behavior: smooth;
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
 }
 
 body {
-  background-color: var(--background);
-  background-image:
-    radial-gradient(ellipse 70% 40% at 10% 0%, rgba(52, 164, 106, 0.10) 0%, transparent 60%),
-    radial-gradient(ellipse 50% 30% at 90% 0%, rgba(180, 50, 40, 0.08) 0%, transparent 50%);
+  background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans);
-  -webkit-tap-highlight-color: transparent;
-  font-feature-settings: 'kern' 1, 'liga' 1;
-}
-
-/* ─── Focus ring ────────────────────────────────────────────────────────────── */
-
-:focus-visible {
-  outline: 2px solid var(--primary);
-  outline-offset: 2px;
-}
-
-/* ─── Scrollbar (webkit) ────────────────────────────────────────────────────── */
-
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover { background: var(--muted-foreground); }
-
-/* ─── Typography utilities ──────────────────────────────────────────────────── */
-
-.text-balance { text-wrap: balance; }
-.text-pretty { text-wrap: pretty; }
-
-/* ─── Animations ────────────────────────────────────────────────────────────── */
-
-@keyframes fade-in {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes shimmer {
-  0%   { background-position: -200% 0; }
-  100% { background-position:  200% 0; }
-}
-
-.animate-fade-in { animation: fade-in 0.3s ease forwards; }
-
-/* ─── Skeleton shimmer ──────────────────────────────────────────────────────── */
-
-.skeleton {
-  background: linear-gradient(
-    90deg,
-    var(--muted) 25%,
-    var(--surface-raised) 50%,
-    var(--muted) 75%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 1.6s ease-in-out infinite;
-}
-
-/* ─── Line clamp utilities ──────────────────────────────────────────────────── */
-
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-.line-clamp-3 {
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-.line-clamp-4 {
-  display: -webkit-box;
-  -webkit-line-clamp: 4;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  font-family: Arial, Helvetica, sans-serif;
 }
