@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: 'img.youtube.com' },
       { protocol: 'https', hostname: 'i.ytimg.com' },
       { protocol: 'https', hostname: '**.sodere.com' },
+      { protocol: 'https', hostname: '**.imgix.net' },
       { protocol: 'https', hostname: '**.etmdb.com' },
     ],
   },
