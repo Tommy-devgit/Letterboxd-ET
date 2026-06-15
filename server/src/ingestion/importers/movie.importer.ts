@@ -1,9 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { ContentType as PrismaContentType, Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
-import type { MovieDTO } from '../dto';
+import type { ContentType, MovieDTO } from '../dto';
 import { GenreImporter } from './genre.importer';
 import { PersonImporter } from './person.importer';
+
+function toPrismaContentType(c: ContentType): PrismaContentType {
+  if (c === 'SERIES') return PrismaContentType.SERIES;
+  if (c === 'SHORT') return PrismaContentType.SHORT;
+  if (c === 'UNKNOWN') return PrismaContentType.UNKNOWN;
+  return PrismaContentType.MOVIE;
+}
 
 export interface ImportResult {
   movieId: string;
@@ -76,6 +83,7 @@ export class MovieImporter {
           etmdbId: dto.etmdbId ?? null,
           imdbId: dto.imdbId ?? null,
           tmdbId: dto.tmdbId ?? null,
+          contentType: toPrismaContentType(dto.contentType),
         },
         update: {
           ...(dto.title && { title: dto.title }),
@@ -90,6 +98,7 @@ export class MovieImporter {
           ...(dto.etmdbId && { etmdbId: dto.etmdbId }),
           ...(dto.imdbId && { imdbId: dto.imdbId }),
           ...(dto.tmdbId && { tmdbId: dto.tmdbId }),
+          contentType: toPrismaContentType(dto.contentType),
         },
         select: { id: true },
       });
@@ -213,6 +222,7 @@ export class MovieImporter {
           ...(dto.synopsis && { synopsis: dto.synopsis }),
           ...(releaseDate && { releaseDate }),
           // ETMDB runtime is always null — don't overwrite Sodere runtime
+          contentType: toPrismaContentType(dto.contentType),
           ...(dto.posterUrl && { posterUrl: dto.posterUrl }),
           ...(dto.backdropUrl && { backdropUrl: dto.backdropUrl }),
           ...(language?.id && { languageId: language.id }),

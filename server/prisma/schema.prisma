@@ -31,6 +31,13 @@ enum SourceName {
   ETMDB
 }
 
+enum ContentType {
+  MOVIE
+  SERIES
+  SHORT
+  UNKNOWN
+}
+
 model User {
   id           String @id @default(uuid())
   username     String @unique
@@ -78,6 +85,8 @@ model Movie {
   tmdbId   Int?
   sodereId String?
   etmdbId  Int?
+
+  contentType ContentType @default(MOVIE)
 
   averageRating Float @default(0)
   ratingsCount  Int   @default(0)

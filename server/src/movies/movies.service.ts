@@ -100,6 +100,7 @@ const movieSummaryInclude = {
   reviews: { select: { id: true } },
 } as const;
 
+
 const movieDetailInclude = {
   genres: { include: { genre: true } },
   country: true,
@@ -127,6 +128,7 @@ function toMovieSummary(movie: {
   releaseDate: Date | null;
   synopsis: string | null;
   posterUrl: string | null;
+  contentType: import('@prisma/client').ContentType;
   // Fix: was `{ value: unknown }[]` — field is `rating`
   ratings: { rating: number }[];
   reviews: { id: string }[];
@@ -145,6 +147,7 @@ function toMovieSummary(movie: {
     releaseYear: movie.releaseDate?.getFullYear() ?? null,
     synopsis: movie.synopsis,
     posterUrl: movie.posterUrl,
+    contentType: movie.contentType,
     averageRating,
     reviewCount: movie.reviews.length,
     genres: movie.genres.map((g) => g.genre.name),

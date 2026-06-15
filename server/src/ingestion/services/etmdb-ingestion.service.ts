@@ -5,8 +5,8 @@ import { GenreImporter } from '../importers/genre.importer';
 
 export interface EtmdbIngestionStats {
   totalMovies: number;
-  imported: number;
-  updated: number;
+  moviesImported: number;
+  moviesUpdated: number;
   skipped: number;
   genresImported: number;
   peopleImported: number;
@@ -32,8 +32,8 @@ export class EtmdbIngestionService {
 
     const stats: EtmdbIngestionStats = {
       totalMovies: dtos.length,
-      imported: 0,
-      updated: 0,
+      moviesImported: 0,
+      moviesUpdated: 0,
       skipped: 0,
       genresImported: 0,
       peopleImported: 0,
@@ -70,9 +70,9 @@ export class EtmdbIngestionService {
         if (result.skipped) {
           stats.skipped++;
         } else if (result.updated) {
-          stats.updated++;
+          stats.moviesUpdated++;
         } else if (result.isNew) {
-          stats.imported++;
+          stats.moviesImported++;
         } else {
           stats.skipped++;
         }
@@ -83,7 +83,7 @@ export class EtmdbIngestionService {
     }
 
     this.logger.log(
-      `ETMDB done — imported: ${stats.imported}, updated: ${stats.updated}, ` +
+      `ETMDB done — imported: ${stats.moviesImported}, updated: ${stats.moviesUpdated}, ` +
         `skipped: ${stats.skipped}, genres: ${stats.genresImported}, ` +
         `people: ${stats.peopleImported}, credits: ${stats.creditsImported}, ` +
         `trailers: ${stats.trailersImported}, errors: ${stats.errors}`,

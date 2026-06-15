@@ -97,9 +97,6 @@ export function Footer() {
           <p className="text-xs text-text-muted">
             © {new Date().getFullYear()} Letterboxd-ET. Ethiopian cinema, always.
           </p>
-          <p className="text-xs text-text-muted">
-            Built with <span className="text-accent">♥</span> for Ethiopian film
-          </p>
         </div>
       </div>
     </footer>

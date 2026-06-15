@@ -5,6 +5,7 @@ import { PersonImporter } from './importers/person.importer';
 import { TrailerImporter } from './importers/trailer.importer';
 import { IngestionService } from './services/ingestion.service';
 import { EtmdbIngestionService } from './services/etmdb-ingestion.service';
+import { MetadataSyncService } from './services/metadata-sync.service';
 import { IngestionController } from './ingestion.controller';
 
 @Module({
@@ -16,7 +17,8 @@ import { IngestionController } from './ingestion.controller';
     TrailerImporter,
     IngestionService,
     EtmdbIngestionService,
+    MetadataSyncService,
   ],
-  exports: [IngestionService, EtmdbIngestionService],
+  exports: [IngestionService, EtmdbIngestionService, MetadataSyncService],
 })
 export class IngestionModule {}

@@ -1,5 +1,7 @@
 export type LanguageCode = "am" | "en" | "om" | "ti";
 
+export type ContentType = "MOVIE" | "SERIES" | "SHORT" | "UNKNOWN";
+
 export type MovieSummary = {
   id: string;
   slug: string;
@@ -8,6 +10,7 @@ export type MovieSummary = {
   releaseYear: number | null;
   synopsis: string | null;
   posterUrl: string | null;
+  contentType: ContentType;
   averageRating: number;
   reviewCount: number;
   genres: string[];
