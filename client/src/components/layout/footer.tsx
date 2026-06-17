@@ -8,12 +8,12 @@ export function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           <div className="col-span-2 md:col-span-1">
             <div className="flex items-center gap-2 mb-3">
-              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-accent text-background font-bold text-sm">
-                ET
-              </div>
-              <span className="font-semibold text-foreground text-sm">
-                Letterboxd<span className="text-accent">-ET</span>
-              </span>
+              <span className="hidden sm:block text-foreground text-lg font-extrabold tracking-wide">
+              Letterboxd
+                <span className="text-green-500">-E</span>
+                <span className="text-yellow-300">T</span>
+                <span className="text-red-500">H</span>
+            </span>
             </div>
             <p className="text-xs text-text-muted leading-relaxed max-w-xs">
               A film diary for Ethiopian cinema lovers. Track, review, and

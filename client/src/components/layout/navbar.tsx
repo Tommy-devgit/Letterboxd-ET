@@ -28,11 +28,11 @@ export function Navbar() {
             className="flex items-center gap-2 shrink-0"
             onClick={() => setMenuOpen(false)}
           >
-            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-accent text-background font-bold text-sm">
-              ET
-            </div>
-            <span className="hidden sm:block font-semibold text-foreground text-sm tracking-wide">
-              Letterboxd<span className="text-accent">-ET</span>
+            <span className="hidden sm:block text-foreground text-xl font-extrabold tracking-wide">
+              Letterboxd
+              <span className="text-green-500">-E</span>
+              <span className="text-yellow-300">T</span>
+              <span className="text-red-500">H</span>
             </span>
           </Link>
 
