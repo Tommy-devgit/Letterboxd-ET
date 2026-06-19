@@ -1,103 +1,33 @@
 import Link from "next/link";
-import { Separator } from "@/components/ui/separator";
+import { Logo } from "@/components/brand/logo";
+
+const footerLinks = [
+  ["Films", "/explore"],
+  ["Lists", "/lists"],
+  ["Members", "/members"],
+  ["Journal", "/journal"],
+  ["Reviews", "/reviews"],
+  ["Activity", "/activity"],
+  ["Diary", "/diary"],
+  ["Watchlist", "/watchlist"],
+];
 
 export function Footer() {
   return (
-    <footer className="border-t border-border bg-surface mt-20">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-          <div className="col-span-2 md:col-span-1">
-            <div className="flex items-center gap-2 mb-3">
-              <span className="hidden sm:block text-foreground text-lg font-extrabold tracking-wide">
-              Letterboxd
-                <span className="text-green-500">-E</span>
-                <span className="text-yellow-300">T</span>
-                <span className="text-red-500">H</span>
-            </span>
-            </div>
-            <p className="text-xs text-text-muted leading-relaxed max-w-xs">
-              A film diary for Ethiopian cinema lovers. Track, review, and
-              discover habesha films.
-            </p>
-          </div>
-
+    <footer className="mt-16 border-t border-border-muted bg-[#090d12]">
+      <div className="lb-container py-8">
+        <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
           <div>
-            <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider mb-3">
-              Discover
-            </h4>
-            <ul className="space-y-2">
-              {[
-                ["Films", "/explore"],
-                ["Genres", "/explore?genre="],
-                ["Top Rated", "/explore?sort=rating"],
-                ["New Releases", "/explore?sort=new"],
-              ].map(([label, href]) => (
-                <li key={label}>
-                  <Link
-                    href={href}
-                    className="text-sm text-foreground-muted hover:text-accent transition-colors"
-                  >
-                    {label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            <Logo href="/" markClassName="h-5 w-[48px]" />
+            <p className="mt-2 max-w-md lb-caption">Ethiopian cinema discovery, diary, reviews, lists, and community activity.</p>
           </div>
-
-          <div>
-            <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider mb-3">
-              Members
-            </h4>
-            <ul className="space-y-2">
-              {[
-                ["Sign In", "/login"],
-                ["Create Account", "/register"],
-                ["Watchlist", "/watchlist"],
-                ["Diary", "/diary"],
-              ].map(([label, href]) => (
-                <li key={label}>
-                  <Link
-                    href={href}
-                    className="text-sm text-foreground-muted hover:text-accent transition-colors"
-                  >
-                    {label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider mb-3">
-              About
-            </h4>
-            <ul className="space-y-2">
-              {[
-                ["About", "#"],
-                ["Contact", "#"],
-                ["Privacy", "#"],
-                ["Terms", "#"],
-              ].map(([label, href]) => (
-                <li key={label}>
-                  <Link
-                    href={href}
-                    className="text-sm text-foreground-muted hover:text-accent transition-colors"
-                  >
-                    {label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+          <nav className="flex flex-wrap gap-x-4 gap-y-2">
+            {footerLinks.map(([label, href]) => (
+              <Link key={label} href={href} className="lb-nav text-[#738292] transition-colors hover:text-[#d8e0e8]">{label}</Link>
+            ))}
+          </nav>
         </div>
-
-        <Separator className="my-8" />
-
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
-          <p className="text-xs text-text-muted">
-            © {new Date().getFullYear()} Letterboxd-ET. Ethiopian cinema, always.
-          </p>
-        </div>
+        <div className="mt-7 border-t border-border-muted pt-4"><p className="lb-caption">© {new Date().getFullYear()} Letterboxd-ET. Built for Ethiopian film culture.</p></div>
       </div>
     </footer>
   );

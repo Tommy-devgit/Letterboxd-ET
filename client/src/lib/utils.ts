@@ -9,6 +9,15 @@ export function formatRating(rating: number): string {
   return rating.toFixed(1);
 }
 
+export function formatStarRating(rating: number | null | undefined): string {
+  if (!rating) return "☆☆☆☆☆";
+  const rounded = Math.round(rating * 2) / 2;
+  const full = Math.floor(rounded);
+  const half = rounded % 1 === 0.5;
+  const empty = 5 - full - (half ? 1 : 0);
+  return `${"★".repeat(full)}${half ? "½" : ""}${"☆".repeat(empty)}`;
+}
+
 export function formatRuntime(minutes: number): string {
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;

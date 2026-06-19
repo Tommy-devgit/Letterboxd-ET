@@ -1,7 +1,7 @@
 import { IsInt, IsOptional, IsString, IsUUID, MaxLength, Min, MinLength } from 'class-validator';
 
 export class CreateListDto {
-  // TODO: Replace with @CurrentUser() from JWT guard once auth is implemented
+  // userId is accepted explicitly until JWT guards are enabled.
   @IsUUID()
   userId!: string;
 

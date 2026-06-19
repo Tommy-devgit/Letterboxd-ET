@@ -10,8 +10,17 @@ import { ErrorState } from "@/components/common/error-state";
 import { useWatchlist } from "@/hooks/use-watchlist";
 import { useAuthStore } from "@/store/auth";
 import { useState } from "react";
+import { ProtectedRoute } from "@/components/auth/protected-route";
 
 export default function WatchlistPage() {
+  return (
+    <ProtectedRoute>
+      <WatchlistContent />
+    </ProtectedRoute>
+  );
+}
+
+function WatchlistContent() {
   const { user } = useAuthStore();
   const [page, setPage] = useState(1);
 

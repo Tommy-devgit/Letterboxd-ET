@@ -12,10 +12,15 @@ export class ListsController {
     return this.listsService.createList(dto);
   }
 
-  /** GET /lists?userId=... */
+  /** GET /lists or /lists?userId=... */
   @Get()
-  getUserLists(@Query('userId') userId: string) {
-    return this.listsService.getUserLists(userId);
+  getLists(
+    @Query('userId') userId?: string,
+    @Query('page') page = 1,
+    @Query('pageSize') pageSize = 24,
+  ) {
+    if (userId) return this.listsService.getUserLists(userId);
+    return this.listsService.getPublicLists(+page, +pageSize);
   }
 
   /** GET /lists/:id */

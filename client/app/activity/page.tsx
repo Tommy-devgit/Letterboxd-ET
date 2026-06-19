@@ -1,38 +1,40 @@
+"use client";
+
 import Link from "next/link";
 import { Clapperboard, Heart, ListPlus, MessageSquare, Star } from "lucide-react";
-import { buildActivity } from "@/lib/letterboxd-et-seed";
+import { useQuery } from "@tanstack/react-query";
+import { ErrorState } from "@/components/common/error-state";
+import { Skeleton } from "@/components/ui/skeleton";
+import { activityApi } from "@/lib/api";
+import { keys } from "@/lib/query-keys";
+import { formatStarRating } from "@/lib/utils";
+import { ProtectedRoute } from "@/components/auth/protected-route";
 
-const icons = {
-  watched: Clapperboard,
-  rated: Star,
-  reviewed: MessageSquare,
-  watchlisted: Heart,
-  listed: ListPlus,
-};
+const icons = { watched: Clapperboard, rated: Star, reviewed: MessageSquare, watchlisted: Heart, listed: ListPlus };
 
 export default function ActivityPage() {
-  const activity = buildActivity([]);
+  return (
+    <ProtectedRoute>
+      <ActivityContent />
+    </ProtectedRoute>
+  );
+}
 
+function ActivityContent() {
+  const { data, isLoading, error, refetch } = useQuery({ queryKey: keys.activity.recent(40), queryFn: () => activityApi.recent(40) });
   return (
     <div className="lb-container py-8">
-      <div className="mb-5 lb-section-rule pt-2">
-        <h1 className="lb-section-title">Activity</h1>
-      </div>
+      <div className="mb-5 lb-section-rule pt-2"><h1 className="lb-section-title">Activity</h1></div>
+      {isLoading && <div className="space-y-2">{Array.from({ length: 10 }, (_, i) => <Skeleton key={i} className="h-12 rounded-[4px]" />)}</div>}
+      {error && <ErrorState retry={() => refetch()} />}
       <div className="divide-y divide-border-muted rounded-[4px] border border-border-muted bg-[#101820]">
-        {activity.map((item) => {
-          const Icon = icons[item.action];
-          return (
-            <Link key={item.id} href="/explore" className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-[#131d26]">
-              <Icon className="h-4 w-4 shrink-0 text-[#54b948]" />
-              <p className="min-w-0 flex-1 text-sm text-[#9aa8b5]">
-                <span className="font-semibold text-[#d8e0e8]">{item.user}</span>{" "}
-                {item.action === "watchlisted" ? "added to watchlist" : item.action}{" "}
-                <span className="font-semibold text-[#cfd8e1]">{item.subject}</span>
-              </p>
-              <span className="lb-caption shrink-0">{item.meta}</span>
-            </Link>
-          );
-        })}
+        {(data ?? []).map((item) => { const Icon = icons[item.type as keyof typeof icons]; const subject = item.movie?.title ?? item.list?.title ?? "a film"; const href = item.movie ? `/movie/${item.movie.slug}` : "/lists"; return (
+          <Link key={item.id} href={href} className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-[#131d26]">
+            <Icon className="h-4 w-4 shrink-0 text-[#54b948]" />
+            <p className="min-w-0 flex-1 text-sm text-[#9aa8b5]"><span className="font-semibold text-[#d8e0e8]">{item.user.username}</span> {item.type === "watchlisted" ? "added to watchlist" : item.type} <span className="font-semibold text-[#cfd8e1]">{subject}</span></p>
+            <span className="lb-caption shrink-0">{item.rating ? formatStarRating(item.rating) : new Date(item.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
+          </Link>
+        ); })}
       </div>
     </div>
   );

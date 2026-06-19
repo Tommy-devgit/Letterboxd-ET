@@ -11,7 +11,7 @@ interface RatingStarsProps {
 
 export function RatingStars({
   rating,
-  max = 10,
+  max = 5,
   size = "md",
   showValue = false,
   className,

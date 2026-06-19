@@ -2,7 +2,7 @@ import { Transform } from 'class-transformer';
 import { IsDate, IsNumber, IsOptional, IsString, IsUUID, Max, MaxLength, Min } from 'class-validator';
 
 export class CreateDiaryEntryDto {
-  // TODO: Replace with @CurrentUser() from JWT guard once auth is implemented
+  // userId is accepted explicitly until JWT guards are enabled.
   @IsUUID()
   userId!: string;
 

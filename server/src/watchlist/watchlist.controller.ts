@@ -3,7 +3,7 @@ import { IsUUID } from 'class-validator';
 import { WatchlistService } from './watchlist.service';
 
 class WatchlistAddDto {
-  // TODO: Replace with @CurrentUser() from JWT guard once auth is implemented
+  // userId is accepted explicitly until JWT guards are enabled.
   @IsUUID()
   userId!: string;
 

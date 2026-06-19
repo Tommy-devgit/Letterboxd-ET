@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Logo } from "@/components/brand/logo";
 
 const navLinks = [
   { href: "/explore", label: "Films", icon: Film },
@@ -38,20 +39,9 @@ export function Navbar() {
     <header className="sticky top-0 z-50 border-b border-black/50 bg-[#090d12]/95 shadow-[0_1px_0_rgba(255,255,255,0.04)]">
       <div className="lb-container">
         <div className="flex h-[54px] items-center justify-between gap-4">
-          <Link
-            href="/"
-            className="flex items-center gap-2.5 shrink-0"
-            onClick={() => setMenuOpen(false)}
-          >
-            <span className="ethiopian-dots" aria-hidden="true">
-              <span />
-              <span />
-              <span />
-            </span>
-            <span className="text-[1.45rem] font-bold tracking-[-0.02em] text-[#d6dde5]">
-              Letterboxd-ET
-            </span>
-          </Link>
+          <span onClick={() => setMenuOpen(false)}>
+            <Logo href="/" />
+          </span>
 
           <nav className="hidden lg:flex items-center gap-5">
             {navLinks.map(({ href, label }) => (

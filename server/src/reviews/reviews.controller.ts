@@ -6,6 +6,12 @@ import { ReviewsService } from './reviews.service';
 export class ReviewsController {
   constructor(private readonly reviewsService: ReviewsService) {}
 
+  /** GET /reviews */
+  @Get('reviews')
+  findRecent(@Query('page') page = 1, @Query('pageSize') pageSize = 24) {
+    return this.reviewsService.findRecent(+page, +pageSize);
+  }
+
   /** POST /reviews */
   @Post('reviews')
   create(@Body() dto: CreateReviewDto) {

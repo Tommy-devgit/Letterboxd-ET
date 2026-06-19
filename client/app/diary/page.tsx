@@ -14,6 +14,8 @@ import { diaryApi } from "@/lib/api";
 import { keys } from "@/lib/query-keys";
 import { formatDateShort } from "@/lib/utils";
 import { useState } from "react";
+import { ProtectedRoute } from "@/components/auth/protected-route";
+import type { DiaryEntry } from "@/types";
 
 function DiaryList({ userId }: { userId: string }) {
   const [page, setPage] = useState(1);
@@ -35,7 +37,7 @@ function DiaryList({ userId }: { userId: string }) {
 
   if (error) return <ErrorState retry={() => refetch()} />;
 
-  const entries = data?.data ?? [];
+  const entries: DiaryEntry[] = data?.data ?? [];
   const totalPages = data ? Math.ceil(data.total / data.pageSize) : 0;
 
   if (entries.length === 0) {
@@ -110,6 +112,14 @@ function DiaryList({ userId }: { userId: string }) {
 }
 
 export default function DiaryPage() {
+  return (
+    <ProtectedRoute>
+      <DiaryContent />
+    </ProtectedRoute>
+  );
+}
+
+function DiaryContent() {
   const { user } = useAuthStore();
 
   return (

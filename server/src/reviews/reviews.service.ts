@@ -43,6 +43,57 @@ export class ReviewsService {
     return { data: reviews, page, pageSize, total };
   }
 
+  async findRecent(page = 1, pageSize = 24) {
+    const [reviews, total] = await this.prisma.$transaction([
+      this.prisma.review.findMany({
+        include: {
+          user: { select: { id: true, username: true, profilePicture: true } },
+          movie: {
+            select: {
+              id: true,
+              slug: true,
+              title: true,
+              posterUrl: true,
+              releaseDate: true,
+            },
+          },
+          _count: { select: { likes: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+      this.prisma.review.count(),
+    ]);
+
+    const data = await Promise.all(
+      reviews.map(async (review) => {
+        const rating = await this.prisma.rating.findUnique({
+          where: { userId_movieId: { userId: review.userId, movieId: review.movieId } },
+          select: { rating: true },
+        });
+
+        return {
+          id: review.id,
+          content: review.content,
+          createdAt: review.createdAt,
+          user: review.user,
+          movie: {
+            id: review.movie.id,
+            slug: review.movie.slug,
+            title: review.movie.title,
+            posterUrl: review.movie.posterUrl,
+            releaseYear: review.movie.releaseDate?.getFullYear() ?? null,
+          },
+          rating: rating?.rating ?? null,
+          likesCount: review._count.likes,
+        };
+      }),
+    );
+
+    return { data, page, pageSize, total };
+  }
+
   async likeReview(reviewId: string, userId: string) {
     const review = await this.prisma.review.findUnique({
       where: { id: reviewId },

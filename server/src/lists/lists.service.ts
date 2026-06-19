@@ -40,6 +40,39 @@ export class ListsService {
     });
   }
 
+  async getPublicLists(page = 1, pageSize = 24) {
+    const [lists, total] = await this.prisma.$transaction([
+      this.prisma.list.findMany({
+        include: {
+          user: { select: { id: true, username: true, profilePicture: true } },
+          movies: {
+            include: {
+              movie: {
+                select: {
+                  id: true,
+                  slug: true,
+                  title: true,
+                  posterUrl: true,
+                  releaseDate: true,
+                  averageRating: true,
+                },
+              },
+            },
+            orderBy: { position: 'asc' },
+            take: 5,
+          },
+          _count: { select: { movies: true } },
+        },
+        orderBy: { updatedAt: 'desc' },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+      this.prisma.list.count(),
+    ]);
+
+    return { data: lists, page, pageSize, total };
+  }
+
   async addMovieToList(listId: string, dto: AddMovieToListDto) {
     const list = await this.prisma.list.findUnique({
       where: { id: listId },

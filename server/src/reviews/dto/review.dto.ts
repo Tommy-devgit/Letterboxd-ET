@@ -1,7 +1,7 @@
 import { IsString, IsUUID, MaxLength, MinLength } from 'class-validator';
 
 export class CreateReviewDto {
-  // TODO: Replace with @CurrentUser() from JWT guard once auth is implemented
+  // userId is accepted explicitly until JWT guards are enabled.
   @IsUUID()
   userId!: string;
 
@@ -15,7 +15,7 @@ export class CreateReviewDto {
 }
 
 export class LikeReviewDto {
-  // TODO: Replace with @CurrentUser() from JWT guard once auth is implemented
+  // userId is accepted explicitly until JWT guards are enabled.
   @IsUUID()
   userId!: string;
 }
