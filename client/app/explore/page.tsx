@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { Suspense, useState, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Search, SlidersHorizontal, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -33,7 +33,7 @@ const LANGUAGES: { value: LanguageCode; label: string }[] = [
   { value: "en", label: "English" },
 ];
 
-export default function ExplorePage() {
+function ExploreContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -135,7 +135,7 @@ export default function ExplorePage() {
           <div className="w-full sm:w-48">
             <Select
               value={language}
-              onValueChange={(v) => setLanguage(v as LanguageCode | "")}
+              onValueChange={(v: string) => setLanguage(v as LanguageCode | "")}
             >
               <SelectTrigger>
                 <SelectValue placeholder="All languages" />
@@ -158,7 +158,7 @@ export default function ExplorePage() {
         <div className="flex flex-wrap items-center gap-2 mb-6">
           <span className="text-xs text-text-muted">Filters:</span>
           {activeQuery && (
-            <Badge variant="accent">"{activeQuery}"</Badge>
+            <Badge variant="accent">&quot;{activeQuery}&quot;</Badge>
           )}
           {activeGenre && (
             <Badge variant="accent">{activeGenre}</Badge>
@@ -215,5 +215,13 @@ export default function ExplorePage() {
         </>
       )}
     </div>
+  );
+}
+
+export default function ExplorePage() {
+  return (
+    <Suspense fallback={<div className="lb-container py-8"><MovieGridSkeleton count={12} /></div>}>
+      <ExploreContent />
+    </Suspense>
   );
 }

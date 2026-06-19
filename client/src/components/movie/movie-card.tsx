@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Star } from "lucide-react";
+import { BookmarkPlus, Eye, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MoviePoster } from "./movie-poster";
 import type { MovieSummary } from "@/types";
@@ -18,7 +18,7 @@ export function MovieCard({ movie, className, variant = "default" }: MovieCardPr
       <Link
         href={`/movie/${movie.slug}`}
         className={cn(
-          "group flex gap-3 rounded-lg p-2 hover:bg-surface transition-colors",
+          "group flex gap-3 rounded-[4px] p-2 transition-colors hover:bg-surface",
           className
         )}
       >
@@ -52,7 +52,7 @@ export function MovieCard({ movie, className, variant = "default" }: MovieCardPr
       <Link
         href={`/movie/${movie.slug}`}
         className={cn(
-          "group flex gap-4 rounded-lg border border-border bg-card p-4 hover:border-accent/30 hover:bg-surface transition-all",
+          "group flex gap-4 rounded-[4px] border border-border bg-card p-3 transition-all hover:border-[#54b948]/50 hover:bg-surface",
           className
         )}
       >
@@ -98,11 +98,8 @@ export function MovieCard({ movie, className, variant = "default" }: MovieCardPr
   }
 
   return (
-    <Link
-      href={`/movie/${movie.slug}`}
-      className={cn("group block", className)}
-    >
-      <div className="relative aspect-[2/3] overflow-hidden rounded-lg bg-surface-raised ring-1 ring-border/50 transition-all duration-300 group-hover:ring-accent/50 group-hover:shadow-lg group-hover:shadow-accent/10">
+    <Link href={`/movie/${movie.slug}`} className={cn("group block", className)}>
+      <div className="poster-shadow relative aspect-[2/3] overflow-hidden rounded-[4px] bg-surface-raised ring-1 ring-[#3b4856]/70 transition-all duration-300 group-hover:-translate-y-1 group-hover:scale-[1.015] group-hover:ring-[#54b948]/80 group-hover:shadow-[0_14px_34px_rgba(0,0,0,0.55)]">
         <MoviePoster
           src={movie.posterUrl}
           alt={movie.title}
@@ -111,32 +108,43 @@ export function MovieCard({ movie, className, variant = "default" }: MovieCardPr
           className="transition-transform duration-500 group-hover:scale-105"
         />
 
-        {/* Hover overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
-        {/* Rating pill */}
         {movie.averageRating > 0 && (
-          <div className="absolute top-2 right-2 flex items-center gap-1 rounded-full bg-black/70 backdrop-blur-sm px-2 py-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <Star className="h-3 w-3 text-rating fill-rating" />
+          <div className="absolute left-2 top-2 flex items-center gap-1 rounded-[3px] bg-black/75 px-1.5 py-0.5 opacity-0 backdrop-blur-sm transition-opacity duration-300 group-hover:opacity-100">
+            <Star className="h-3 w-3 fill-[#54b948] text-[#54b948]" />
             <span className="text-xs font-medium text-white">
               {movie.averageRating.toFixed(1)}
             </span>
           </div>
         )}
 
-        {/* Bottom info on hover */}
-        <div className="absolute bottom-0 left-0 right-0 p-3 translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
+        <div className="absolute right-2 top-2 flex gap-1 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+          <span className="grid h-6 w-6 place-items-center rounded-[3px] bg-black/70 text-[#d8e0e8] backdrop-blur-sm">
+            <BookmarkPlus className="h-3.5 w-3.5" />
+          </span>
+          <span className="grid h-6 w-6 place-items-center rounded-[3px] bg-black/70 text-[#d8e0e8] backdrop-blur-sm">
+            <Eye className="h-3.5 w-3.5" />
+          </span>
+        </div>
+
+        <div className="absolute bottom-0 left-0 right-0 translate-y-2 p-3 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
           <p className="text-xs text-white/70 truncate">
             {movie.directors[0]}
           </p>
         </div>
       </div>
 
-      <div className="mt-2 space-y-0.5">
-        <h3 className="text-sm font-medium text-foreground line-clamp-1 group-hover:text-accent transition-colors">
+      <div className="mt-2 space-y-1">
+        <h3 className="text-[0.86rem] font-semibold leading-tight text-[#cfd8e1] line-clamp-1 transition-colors group-hover:text-white">
           {movie.title}
         </h3>
-        <p className="text-xs text-text-muted">{movie.releaseYear}</p>
+        <div className="flex items-center justify-between gap-2">
+          <p className="lb-caption">{movie.releaseYear}</p>
+          {movie.reviewCount > 0 && (
+            <p className="lb-caption">{movie.reviewCount} reviews</p>
+          )}
+        </div>
       </div>
     </Link>
   );

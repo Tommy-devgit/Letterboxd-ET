@@ -3,15 +3,31 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Search, Menu, X, Film, User, BookOpen, List, Heart } from "lucide-react";
+import {
+  Search,
+  Menu,
+  X,
+  Film,
+  User,
+  List,
+  Heart,
+  Newspaper,
+  MessageSquare,
+  Activity,
+  CalendarDays,
+  Plus,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 const navLinks = [
   { href: "/explore", label: "Films", icon: Film },
-  { href: "/diary", label: "Diary", icon: BookOpen },
-  { href: "/watchlist", label: "Watchlist", icon: Heart },
   { href: "/lists", label: "Lists", icon: List },
+  { href: "/members", label: "Members", icon: User },
+  { href: "/journal", label: "Journal", icon: Newspaper },
+  { href: "/diary", label: "Diary", icon: CalendarDays },
+  { href: "/reviews", label: "Reviews", icon: MessageSquare },
+  { href: "/activity", label: "Activity", icon: Activity },
 ];
 
 export function Navbar() {
@@ -19,34 +35,34 @@ export function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur-md">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex h-14 items-center justify-between gap-4">
-          {/* Logo */}
+    <header className="sticky top-0 z-50 border-b border-black/50 bg-[#090d12]/95 shadow-[0_1px_0_rgba(255,255,255,0.04)]">
+      <div className="lb-container">
+        <div className="flex h-[54px] items-center justify-between gap-4">
           <Link
             href="/"
-            className="flex items-center gap-2 shrink-0"
+            className="flex items-center gap-2.5 shrink-0"
             onClick={() => setMenuOpen(false)}
           >
-            <span className="hidden sm:block text-foreground text-xl font-extrabold tracking-wide">
-              Letterboxd
-              <span className="text-green-500">-E</span>
-              <span className="text-yellow-300">T</span>
-              <span className="text-red-500">H</span>
+            <span className="ethiopian-dots" aria-hidden="true">
+              <span />
+              <span />
+              <span />
+            </span>
+            <span className="text-[1.45rem] font-bold tracking-[-0.02em] text-[#d6dde5]">
+              Letterboxd-ET
             </span>
           </Link>
 
-          {/* Desktop nav */}
-          <nav className="hidden md:flex items-center gap-1">
+          <nav className="hidden lg:flex items-center gap-5">
             {navLinks.map(({ href, label }) => (
               <Link
                 key={href}
                 href={href}
                 className={cn(
-                  "px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
+                  "lb-nav transition-colors hover:text-[#d8e0e8]",
                   pathname === href || pathname.startsWith(href + "/")
-                    ? "text-foreground bg-surface"
-                    : "text-foreground-muted hover:text-foreground hover:bg-surface"
+                    ? "text-[#d8e0e8]"
+                    : "text-[#738292]"
                 )}
               >
                 {label}
@@ -56,26 +72,25 @@ export function Navbar() {
 
           {/* Right side */}
           <div className="flex items-center gap-2">
-            <Link
-              href="/search"
-              className="p-2 rounded-md text-foreground-muted hover:text-foreground hover:bg-surface transition-colors"
-              aria-label="Search"
-            >
-              <Search className="h-4 w-4" />
+            <Link href="/watchlist" className="hidden md:flex items-center gap-1.5 lb-nav text-[#738292] hover:text-[#d8e0e8]">
+              <Heart className="h-3.5 w-3.5" />
+              Watchlist
+            </Link>
+            <Link href="/search" className="p-2 text-[#738292] transition-colors hover:text-[#d8e0e8]" aria-label="Search">
+              <Search className="h-5 w-5" />
             </Link>
 
             <div className="hidden sm:flex items-center gap-2">
-              <Button variant="ghost" size="sm" asChild>
+              <Button size="sm" className="h-8 rounded-[3px] bg-[#139f43] px-3 text-xs font-bold uppercase tracking-wide text-white hover:bg-[#16b34b]" asChild>
                 <Link href="/login">
-                  <User className="h-4 w-4" />
-                  Sign in
+                  <Plus className="h-3.5 w-3.5" />
+                  Log
                 </Link>
               </Button>
             </div>
 
-            {/* Mobile menu toggle */}
             <button
-              className="md:hidden p-2 rounded-md text-foreground-muted hover:text-foreground hover:bg-surface transition-colors"
+              className="lg:hidden p-2 text-[#738292] transition-colors hover:text-[#d8e0e8]"
               onClick={() => setMenuOpen(!menuOpen)}
               aria-label="Toggle menu"
             >
@@ -85,19 +100,18 @@ export function Navbar() {
         </div>
       </div>
 
-      {/* Mobile menu */}
       {menuOpen && (
-        <div className="md:hidden border-t border-border bg-surface">
-          <nav className="flex flex-col py-2 px-4">
+        <div className="lg:hidden border-t border-border bg-[#0d141b]">
+          <nav className="lb-container flex flex-col py-2">
             {navLinks.map(({ href, label, icon: Icon }) => (
               <Link
                 key={href}
                 href={href}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors",
+                  "flex items-center gap-3 px-2 py-2.5 lb-nav transition-colors",
                   pathname === href
-                    ? "text-foreground bg-surface-raised"
-                    : "text-foreground-muted hover:text-foreground hover:bg-surface-raised"
+                    ? "text-[#d8e0e8]"
+                    : "text-[#738292] hover:text-[#d8e0e8]"
                 )}
                 onClick={() => setMenuOpen(false)}
               >
@@ -107,12 +121,12 @@ export function Navbar() {
             ))}
             <div className="mt-2 pt-2 border-t border-border">
               <Link
-                href="/login"
-                className="flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-foreground-muted hover:text-foreground hover:bg-surface-raised transition-colors"
+                href="/watchlist"
+                className="flex items-center gap-3 px-2 py-2.5 lb-nav text-[#738292] transition-colors hover:text-[#d8e0e8]"
                 onClick={() => setMenuOpen(false)}
               >
-                <User className="h-4 w-4" />
-                Sign in
+                <Heart className="h-4 w-4" />
+                Watchlist
               </Link>
             </div>
           </nav>

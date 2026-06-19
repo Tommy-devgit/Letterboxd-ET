@@ -23,6 +23,9 @@ import { ReviewCard } from "@/components/review/review-card";
 import { ErrorState } from "@/components/common/error-state";
 import { EmptyState } from "@/components/common/empty-state";
 import { useMovie, useMovieReviews } from "@/hooks/use-movie";
+import { useMovies } from "@/hooks/use-movies";
+import { MovieCarousel } from "@/components/movie/movie-carousel";
+import { reviewsForMovie } from "@/lib/letterboxd-et-seed";
 import { formatRuntime, formatDateShort, formatRating } from "@/lib/utils";
 import type { CreditRole } from "@/types";
 
@@ -62,6 +65,7 @@ export default function MoviePage() {
 
   const { data: movie, isLoading, error, refetch } = useMovie(slug);
   const { data: reviewsData } = useMovieReviews(movie?.id ?? "", 1);
+  const { data: relatedData } = useMovies({ page: 1, pageSize: 12 });
   const [inWatchlist, setInWatchlist] = useState(false);
 
   if (isLoading) return <MovieDetailSkeleton />;
@@ -87,7 +91,8 @@ export default function MoviePage() {
   );
 
   const genres = movie.genres.map((g) => g.genre);
-  const reviews = reviewsData?.data ?? movie.reviews;
+  const seededReviews = reviewsForMovie(movie.title, movie.id);
+  const reviews = [...(reviewsData?.data ?? movie.reviews), ...seededReviews];
 
   const averageRating =
     movie.ratings.length
@@ -95,9 +100,8 @@ export default function MoviePage() {
       : movie.averageRating;
 
   return (
-    <div>
-      {/* Backdrop */}
-      <div className="relative h-48 sm:h-64 overflow-hidden">
+    <div className="pb-16">
+      <div className="relative h-56 overflow-hidden sm:h-72 lg:h-80">
         <MoviePoster
           src={movie.backdropUrl ?? movie.posterUrl}
           alt={movie.title}
@@ -106,14 +110,14 @@ export default function MoviePage() {
           sizes="100vw"
           className="object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/60 to-background" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0b1117]/20 via-[#0b1117]/70 to-[#0b1117]" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0b1117] via-[#0b1117]/50 to-transparent" />
       </div>
 
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 -mt-16 relative">
-        <div className="flex flex-col md:flex-row gap-8">
-          {/* Poster */}
-          <div className="w-40 sm:w-48 md:w-56 shrink-0 mx-auto md:mx-0">
-            <div className="relative aspect-[2/3] rounded-xl overflow-hidden ring-2 ring-border shadow-2xl shadow-black/50">
+      <div className="lb-container -mt-24 relative">
+        <div className="grid gap-8 md:grid-cols-[220px_minmax(0,1fr)] lg:grid-cols-[250px_minmax(0,1fr)_230px]">
+          <aside className="mx-auto w-44 shrink-0 md:mx-0 md:w-full">
+            <div className="poster-shadow relative aspect-[2/3] overflow-hidden rounded-[4px] ring-1 ring-[#4a5b69]">
               <MoviePoster
                 src={movie.posterUrl}
                 alt={movie.title}
@@ -122,21 +126,38 @@ export default function MoviePage() {
                 priority
               />
             </div>
-          </div>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <Button
+                variant={inWatchlist ? "secondary" : "outline"}
+                onClick={() => setInWatchlist(!inWatchlist)}
+                className="rounded-[4px] border-[#334352] text-xs"
+              >
+                {inWatchlist ? <BookmarkCheck className="h-4 w-4" /> : <BookmarkPlus className="h-4 w-4" />}
+                Watchlist
+              </Button>
+              {movie.trailers[0] && (
+                <Button asChild className="rounded-[4px] bg-[#e0362d] text-xs text-white hover:bg-[#c92e27]">
+                  <a href={movie.trailers[0].youtubeUrl} target="_blank" rel="noopener noreferrer">
+                    <Play className="h-4 w-4" />
+                    Trailer
+                  </a>
+                </Button>
+              )}
+            </div>
+          </aside>
 
-          {/* Info */}
-          <div className="flex-1 min-w-0 pt-4 md:pt-16">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground leading-tight">
+          <section className="min-w-0 pt-2 md:pt-20">
+            <h1 className="text-3xl font-semibold leading-tight tracking-[-0.01em] text-[#d8e0e8] md:text-4xl">
               {movie.title}
             </h1>
 
             {movie.originalTitle && movie.originalTitle !== movie.title && (
-              <p className="text-foreground-muted text-sm mt-1">
+              <p className="mt-1 text-sm font-medium text-[#8796a6]">
                 {movie.originalTitle}
               </p>
             )}
 
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3 text-sm text-text-muted">
+            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm font-medium text-[#7e91a2]">
               {releaseYear && (
                 <span className="flex items-center gap-1">
                   <Calendar className="h-3.5 w-3.5" />
@@ -159,7 +180,7 @@ export default function MoviePage() {
             </div>
 
             {genres.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-3">
+              <div className="mt-4 flex flex-wrap gap-2">
                 {genres.map((g) => (
                   <GenreBadge
                     key={g.id}
@@ -170,80 +191,32 @@ export default function MoviePage() {
               </div>
             )}
 
-            {averageRating > 0 && (
-              <div className="flex items-center gap-3 mt-4">
-                <div className="flex items-center gap-1.5 bg-rating/10 border border-rating/20 rounded-lg px-3 py-1.5">
-                  <Star className="h-4 w-4 text-rating fill-rating" />
-                  <span className="text-base font-bold text-foreground">
-                    {formatRating(averageRating)}
-                  </span>
-                  <span className="text-xs text-text-muted">/10</span>
-                </div>
-                {movie.ratingsCount > 0 && (
-                  <span className="text-xs text-text-muted">
-                    {movie.ratingsCount} ratings
-                  </span>
-                )}
-              </div>
-            )}
-
             {movie.synopsis && (
-              <p className="mt-5 text-sm sm:text-base text-foreground-muted leading-relaxed max-w-2xl">
+              <p className="mt-5 max-w-2xl text-[0.96rem] leading-7 text-[#b8c3ce]">
                 {movie.synopsis}
               </p>
             )}
 
             {directors.length > 0 && (
-              <div className="mt-4">
-                <span className="text-xs font-semibold text-text-muted uppercase tracking-wide">
+              <div className="mt-5 border-t border-border-muted pt-3">
+                <span className="lb-section-title">
                   Directed by
                 </span>
-                <p className="text-sm text-foreground mt-0.5">
+                <p className="mt-1 text-sm font-semibold text-[#d8e0e8]">
                   {directors.map((d) => d.person.fullName).join(", ")}
                 </p>
               </div>
             )}
 
-            <div className="flex flex-wrap gap-3 mt-6">
-              {movie.trailers[0] && (
-                <Button asChild>
-                  <a
-                    href={movie.trailers[0].youtubeUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <Play className="h-4 w-4" />
-                    Watch Trailer
-                  </a>
-                </Button>
-              )}
-              <Button
-                variant={inWatchlist ? "secondary" : "outline"}
-                onClick={() => setInWatchlist(!inWatchlist)}
-              >
-                {inWatchlist ? (
-                  <>
-                    <BookmarkCheck className="h-4 w-4" />
-                    In Watchlist
-                  </>
-                ) : (
-                  <>
-                    <BookmarkPlus className="h-4 w-4" />
-                    Add to Watchlist
-                  </>
-                )}
-              </Button>
-            </div>
-
             {movie.sources.length > 0 && (
-              <div className="mt-4 flex flex-wrap gap-2">
+              <div className="mt-5 flex flex-wrap gap-2">
                 {movie.sources.map((src) => (
                   <a
                     key={src.sourceUrl}
                     href={src.sourceUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 text-xs text-accent hover:text-accent-muted border border-accent/30 hover:border-accent/60 rounded-full px-3 py-1 transition-colors"
+                    className="inline-flex items-center gap-1.5 rounded-[3px] border border-[#f2c94c]/30 px-3 py-1 text-xs font-semibold text-[#f2c94c] transition-colors hover:border-[#f2c94c]/70"
                   >
                     <ExternalLink className="h-3 w-3" />
                     Watch on {src.sourceName}
@@ -251,13 +224,41 @@ export default function MoviePage() {
                 ))}
               </div>
             )}
-          </div>
+          </section>
+
+          <aside className="pt-2 md:pt-20">
+            <div className="rounded-[4px] border border-border-muted bg-[#101820] p-4">
+              <p className="lb-section-title">Ratings</p>
+              {averageRating > 0 ? (
+                <div className="mt-3 flex items-end gap-2">
+                  <Star className="mb-1 h-5 w-5 fill-[#54b948] text-[#54b948]" />
+                  <span className="text-3xl font-semibold text-[#d8e0e8]">{formatRating(averageRating)}</span>
+                  <span className="pb-1 lb-caption">/10</span>
+                </div>
+              ) : (
+                <p className="mt-3 lb-caption">No ratings yet</p>
+              )}
+              <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+                <div>
+                  <p className="text-lg font-semibold text-[#d8e0e8]">{movie.ratingsCount || movie.ratings.length}</p>
+                  <p className="lb-caption">ratings</p>
+                </div>
+                <div>
+                  <p className="text-lg font-semibold text-[#d8e0e8]">{reviews.length}</p>
+                  <p className="lb-caption">reviews</p>
+                </div>
+                <div>
+                  <p className="text-lg font-semibold text-[#d8e0e8]">{movie.trailers.length}</p>
+                  <p className="lb-caption">trailers</p>
+                </div>
+              </div>
+            </div>
+          </aside>
         </div>
 
-        {/* Tabs */}
         <div className="mt-12">
           <Tabs defaultValue="cast">
-            <TabsList>
+            <TabsList className="rounded-[4px] border border-border-muted bg-[#101820]">
               <TabsTrigger value="cast">Cast & Crew</TabsTrigger>
               <TabsTrigger value="reviews">
                 Reviews {reviews.length > 0 && `(${reviews.length})`}
@@ -270,12 +271,12 @@ export default function MoviePage() {
             <TabsContent value="cast">
               {cast.length > 0 && (
                 <div className="mb-6">
-                  <h3 className="text-sm font-semibold text-foreground mb-3">Cast</h3>
+                  <h3 className="lb-section-title mb-3">Cast</h3>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                     {cast.map((c) => (
                       <div
                         key={c.person.id}
-                        className="flex items-center gap-2 rounded-lg border border-border bg-card p-2.5"
+                        className="flex items-center gap-2 rounded-[4px] border border-border-muted bg-[#101820] p-2.5"
                       >
                         <div className="h-8 w-8 rounded-full overflow-hidden shrink-0 bg-surface-raised flex items-center justify-center">
                           {c.person.photoUrl ? (
@@ -308,7 +309,7 @@ export default function MoviePage() {
 
               {crew.length > 0 && (
                 <div>
-                  <h3 className="text-sm font-semibold text-foreground mb-3">Crew</h3>
+                  <h3 className="lb-section-title mb-3">Crew</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {crew.map((c) => (
                       <div
@@ -356,7 +357,7 @@ export default function MoviePage() {
                   {movie.trailers.map((t) => {
                     const ytId = t.youtubeUrl.match(/(?:v=|youtu\.be\/)([^&?/]+)/)?.[1];
                     return (
-                      <div key={t.id} className="rounded-lg overflow-hidden bg-surface border border-border">
+                      <div key={t.id} className="rounded-[4px] overflow-hidden bg-surface border border-border">
                         <div className="aspect-video">
                           {ytId ? (
                             <iframe
@@ -387,7 +388,14 @@ export default function MoviePage() {
           </Tabs>
         </div>
 
-        <div className="pb-20" />
+        {relatedData?.data?.length ? (
+          <section className="mt-12">
+            <div className="mb-3 lb-section-rule pt-2">
+              <h2 className="lb-section-title">Related Films</h2>
+            </div>
+            <MovieCarousel movies={relatedData.data.filter((item) => item.id !== movie.id).slice(0, 10)} />
+          </section>
+        ) : null}
       </div>
     </div>
   );
