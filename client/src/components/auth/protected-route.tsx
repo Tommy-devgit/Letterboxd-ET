@@ -8,15 +8,15 @@ import { useAuth } from "@/providers/auth/auth-provider";
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, ready } = useAuth();
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (ready && !isAuthenticated) {
       router.replace(`/login?next=${encodeURIComponent(pathname)}`);
     }
-  }, [isAuthenticated, pathname, router]);
+  }, [isAuthenticated, pathname, ready, router]);
 
-  if (!isAuthenticated) {
+  if (!ready || !isAuthenticated) {
     return (
       <div className="lb-container grid min-h-[50vh] place-items-center py-12">
         <div className="text-center">

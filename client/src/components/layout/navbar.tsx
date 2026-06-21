@@ -16,10 +16,12 @@ import {
   Activity,
   CalendarDays,
   Plus,
+  LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/brand/logo";
+import { useAuth } from "@/providers/auth/auth-provider";
 
 const navLinks = [
   { href: "/explore", label: "Films", icon: Film },
@@ -34,6 +36,7 @@ const navLinks = [
 export function Navbar() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+  const { user, isAuthenticated, logout } = useAuth();
 
   return (
     <header className="sticky top-0 z-50 border-b border-black/50 bg-[#090d12]/95 shadow-[0_1px_0_rgba(255,255,255,0.04)]">
@@ -71,12 +74,21 @@ export function Navbar() {
             </Link>
 
             <div className="hidden sm:flex items-center gap-2">
-              <Button size="sm" className="h-8 rounded-[3px] bg-[#139f43] px-3 text-xs font-bold uppercase tracking-wide text-white hover:bg-[#16b34b]" asChild>
-                <Link href="/login">
-                  <Plus className="h-3.5 w-3.5" />
-                  Log
-                </Link>
-              </Button>
+              {isAuthenticated && user ? (
+                <>
+                  <span className="lb-nav text-[#d8e0e8]">{user.username}</span>
+                  <Button size="sm" variant="ghost" className="h-8 rounded-[3px] px-2" onClick={() => void logout()}>
+                    <LogOut className="h-3.5 w-3.5" />
+                  </Button>
+                </>
+              ) : (
+                <Button size="sm" className="h-8 rounded-[3px] bg-[#139f43] px-3 text-xs font-bold uppercase tracking-wide text-white hover:bg-[#16b34b]" asChild>
+                  <Link href="/login">
+                    <Plus className="h-3.5 w-3.5" />
+                    Log
+                  </Link>
+                </Button>
+              )}
             </div>
 
             <button

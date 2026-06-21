@@ -93,12 +93,16 @@ export const peopleApi = {
 };
 
 export const authApi = {
-  prepareLogin: (dto: { email: string; password: string }) =>
-    api.post("/auth/login/prepare", dto).then((r) => r.data),
-  prepareRegister: (dto: { username: string; email: string; password: string }) =>
-    api.post("/auth/register/prepare", dto).then((r) => r.data),
-  prepareForgotPassword: (dto: { email: string }) =>
-    api.post("/auth/forgot-password/prepare", dto).then((r) => r.data),
+  login: (dto: { email: string; password: string }) =>
+    api.post<{ user: User; accessToken: string; expiresIn: number }>("/auth/login", dto).then((r) => r.data),
+  register: (dto: { username: string; email: string; password: string }) =>
+    api.post<{ user: User; accessToken: string; expiresIn: number }>("/auth/register", dto).then((r) => r.data),
+  refresh: () =>
+    api.post<{ user: User; accessToken: string; expiresIn: number }>("/auth/refresh").then((r) => r.data),
+  logout: () => api.post<{ success: true }>("/auth/logout").then((r) => r.data),
+  me: () => api.get<User>("/auth/me").then((r) => r.data),
+  forgotPassword: (dto: { email: string }) =>
+    api.post("/auth/forgot-password", dto).then((r) => r.data),
 };
 
 export const ratingsApi = {

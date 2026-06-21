@@ -17,8 +17,10 @@ export default function ForgotPasswordPage() {
     setLoading(true);
     setMessage("");
     try {
-      await authApi.prepareForgotPassword({ email });
-      setMessage("Password reset architecture is ready; email delivery will be enabled with full auth.");
+      await authApi.forgotPassword({ email });
+      setMessage("If an account exists for that email, a reset flow can be issued.");
+    } catch {
+      setMessage("Could not reach the auth endpoint. Restart the backend server so the new auth routes are loaded.");
     } finally {
       setLoading(false);
     }

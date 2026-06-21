@@ -1,6 +1,8 @@
 import { ContentType, CreditRole, PrismaClient, SourceName } from "@prisma/client";
+import { randomBytes, scryptSync } from "crypto";
 
 const prisma = new PrismaClient();
+const seededPasswordHash = hashSeedPassword("Password123!");
 
 async function main() {
   const genres = [
@@ -191,12 +193,13 @@ async function main() {
         where: { email: `${name.toLowerCase()}@letterboxd-et.local` },
         update: {
           username: name.toLowerCase(),
+          passwordHash: seededPasswordHash,
           bio: `${name} watches Ethiopian cinema, writes notes, and keeps a growing film diary.`,
         },
         create: {
           username: name.toLowerCase(),
           email: `${name.toLowerCase()}@letterboxd-et.local`,
-          passwordHash: "seeded-auth-foundation-password-hash",
+          passwordHash: seededPasswordHash,
           bio: `${name} watches Ethiopian cinema, writes notes, and keeps a growing film diary.`,
         },
       }),
@@ -321,6 +324,12 @@ async function main() {
   console.log(
     `Seeded ${genres.length} genres, ${users.length} users, 120 ratings, 70 reviews, ${listSeeds.length} lists, diary entries, and watchlists.`,
   );
+}
+
+function hashSeedPassword(password: string) {
+  const salt = randomBytes(16).toString("hex");
+  const derived = scryptSync(password, salt, 64);
+  return `scrypt:${salt}:${derived.toString("hex")}`;
 }
 
 main()

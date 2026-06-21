@@ -1,23 +1,85 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, Res } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ForgotPasswordDto, LoginDto, RegisterDto } from './dto/auth.dto';
+
+const refreshCookieName = 'lbxd_et_refresh';
+const sessionCookieName = 'lbxd_et_session';
+const refreshMaxAgeMs = 30 * 24 * 60 * 60 * 1000;
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post('login/prepare')
-  prepareLogin(@Body() dto: LoginDto) {
-    return this.authService.describeLogin(dto);
+  @Post('register')
+  async register(@Body() dto: RegisterDto, @Res({ passthrough: true }) response: any) {
+    const session = await this.authService.register(dto);
+    this.setSessionCookies(response, session.refreshToken);
+    return this.toClientSession(session);
   }
 
-  @Post('register/prepare')
-  prepareRegistration(@Body() dto: RegisterDto) {
-    return this.authService.describeRegistration(dto);
+  @Post('login')
+  async login(@Body() dto: LoginDto, @Res({ passthrough: true }) response: any) {
+    const session = await this.authService.login(dto);
+    this.setSessionCookies(response, session.refreshToken);
+    return this.toClientSession(session);
   }
 
-  @Post('forgot-password/prepare')
+  @Post('refresh')
+  async refresh(@Req() request: any, @Res({ passthrough: true }) response: any) {
+    const session = await this.authService.refresh(this.getCookie(request, refreshCookieName));
+    this.setSessionCookies(response, session.refreshToken);
+    return this.toClientSession(session);
+  }
+
+  @Post('logout')
+  logout(@Res({ passthrough: true }) response: any) {
+    response.clearCookie(refreshCookieName, cookieOptions(true));
+    response.clearCookie(sessionCookieName, cookieOptions(false));
+    return { success: true };
+  }
+
+  @Get('me')
+  me(@Req() request: any) {
+    return this.authService.me(this.getBearerToken(request));
+  }
+
+  @Post('forgot-password')
   preparePasswordReset(@Body() dto: ForgotPasswordDto) {
     return this.authService.describePasswordReset(dto);
   }
+
+  private setSessionCookies(response: any, refreshToken: string) {
+    response.cookie(refreshCookieName, refreshToken, cookieOptions(true));
+    response.cookie(sessionCookieName, '1', cookieOptions(false));
+  }
+
+  private toClientSession(session: { user: unknown; accessToken: string; expiresIn: number }) {
+    return { user: session.user, accessToken: session.accessToken, expiresIn: session.expiresIn };
+  }
+
+  private getBearerToken(request: any) {
+    const header = request.headers?.authorization as string | undefined;
+    if (!header?.startsWith('Bearer ')) return undefined;
+    return header.slice('Bearer '.length);
+  }
+
+  private getCookie(request: any, name: string) {
+    const rawCookie = request.headers?.cookie as string | undefined;
+    if (!rawCookie) return undefined;
+    return rawCookie
+      .split(';')
+      .map((part) => part.trim())
+      .find((part) => part.startsWith(`${name}=`))
+      ?.slice(name.length + 1);
+  }
+}
+
+function cookieOptions(httpOnly: boolean) {
+  return {
+    httpOnly,
+    sameSite: 'lax' as const,
+    secure: process.env.NODE_ENV === 'production',
+    path: '/',
+    maxAge: refreshMaxAgeMs,
+  };
 }

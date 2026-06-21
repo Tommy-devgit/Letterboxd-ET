@@ -21,11 +21,25 @@ export const useAuthStore = create<AuthState>()(
       token: null,
       isAuthenticated: false,
       setUser: (user) => set({ user, isAuthenticated: !!user }),
-      setToken: (token) => set({ token }),
-      login: (user, token) =>
-        set({ user, token, isAuthenticated: true }),
-      logout: () =>
-        set({ user: null, token: null, isAuthenticated: false }),
+      setToken: (token) => {
+        if (typeof window !== "undefined") {
+          if (token) localStorage.setItem("auth-token", token);
+          else localStorage.removeItem("auth-token");
+        }
+        set({ token });
+      },
+      login: (user, token) => {
+        if (typeof window !== "undefined") {
+          localStorage.setItem("auth-token", token);
+        }
+        set({ user, token, isAuthenticated: true });
+      },
+      logout: () => {
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("auth-token");
+        }
+        set({ user: null, token: null, isAuthenticated: false });
+      },
     }),
     {
       name: "lbxd-et-auth",
