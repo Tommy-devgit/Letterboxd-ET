@@ -64,6 +64,16 @@ export class AuthService {
   async me(accessToken: string | undefined) {
     if (!accessToken) throw new UnauthorizedException('Missing access token');
     const payload = this.verifyToken(accessToken, 'access');
+    return this.userFromAccessPayload(payload);
+  }
+
+  async authenticateAccessToken(accessToken: string | undefined) {
+    if (!accessToken) throw new UnauthorizedException('Missing access token');
+    const payload = this.verifyToken(accessToken, 'access');
+    return this.userFromAccessPayload(payload);
+  }
+
+  private async userFromAccessPayload(payload: JwtPayload) {
     const user = await this.prisma.user.findUnique({ where: { id: payload.sub }, select: authUserSelect });
     if (!user) throw new UnauthorizedException('User no longer exists');
     return user;

@@ -23,3 +23,24 @@ export class UpdateUserProfileDto {
   @IsString()
   profilePicture?: string;
 }
+
+export class UpdateAccountDto {
+  @IsOptional()
+  @IsString()
+  @Length(2, 32)
+  username?: string;
+
+  @IsOptional()
+  @IsEmail()
+  email?: string;
+}
+
+export class ChangePasswordDto {
+  @IsString()
+  @Length(8, 128)
+  currentPassword!: string;
+
+  @IsString()
+  @Length(8, 128)
+  newPassword!: string;
+}

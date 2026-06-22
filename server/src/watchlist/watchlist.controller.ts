@@ -1,12 +1,10 @@
-import { Body, Controller, Delete, Get, Param, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { IsUUID } from 'class-validator';
+import { AuthGuard } from '../auth/auth.guard';
+import { CurrentUser, type CurrentUser as CurrentUserType } from '../auth/current-user.decorator';
 import { WatchlistService } from './watchlist.service';
 
 class WatchlistAddDto {
-  // userId is accepted explicitly until JWT guards are enabled.
-  @IsUUID()
-  userId!: string;
-
   @IsUUID()
   movieId!: string;
 }
@@ -17,14 +15,16 @@ export class WatchlistController {
 
   /** POST /watchlist */
   @Post()
-  add(@Body() dto: WatchlistAddDto) {
-    return this.watchlistService.add(dto.userId, dto.movieId);
+  @UseGuards(AuthGuard)
+  add(@CurrentUser() user: CurrentUserType, @Body() dto: WatchlistAddDto) {
+    return this.watchlistService.add(user.id, dto.movieId);
   }
 
-  /** DELETE /watchlist/:movieId?userId=... */
+  /** DELETE /watchlist/:movieId */
   @Delete(':movieId')
-  remove(@Param('movieId') movieId: string, @Query('userId') userId: string) {
-    return this.watchlistService.remove(userId, movieId);
+  @UseGuards(AuthGuard)
+  remove(@CurrentUser() user: CurrentUserType, @Param('movieId') movieId: string) {
+    return this.watchlistService.remove(user.id, movieId);
   }
 
   /** GET /watchlist?userId=...&page=1&pageSize=20 */

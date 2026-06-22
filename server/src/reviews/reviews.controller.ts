@@ -1,5 +1,7 @@
-import { Body, Controller, Delete, Get, Param, Post, Query } from '@nestjs/common';
-import { CreateReviewDto, LikeReviewDto } from './dto/review.dto';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '../auth/auth.guard';
+import { CurrentUser, type CurrentUser as CurrentUserType } from '../auth/current-user.decorator';
+import { CreateReviewDto, UpdateReviewDto } from './dto/review.dto';
 import { ReviewsService } from './reviews.service';
 
 @Controller()
@@ -14,8 +16,9 @@ export class ReviewsController {
 
   /** POST /reviews */
   @Post('reviews')
-  create(@Body() dto: CreateReviewDto) {
-    return this.reviewsService.createReview(dto);
+  @UseGuards(AuthGuard)
+  create(@CurrentUser() user: CurrentUserType, @Body() dto: CreateReviewDto) {
+    return this.reviewsService.createReview(user.id, dto);
   }
 
   /** GET /movies/:movieId/reviews */
@@ -30,13 +33,27 @@ export class ReviewsController {
 
   /** POST /reviews/:id/likes */
   @Post('reviews/:id/likes')
-  like(@Param('id') reviewId: string, @Body() dto: LikeReviewDto) {
-    return this.reviewsService.likeReview(reviewId, dto.userId);
+  @UseGuards(AuthGuard)
+  like(@CurrentUser() user: CurrentUserType, @Param('id') reviewId: string) {
+    return this.reviewsService.likeReview(reviewId, user.id);
   }
 
   /** DELETE /reviews/:id/likes */
   @Delete('reviews/:id/likes')
-  unlike(@Param('id') reviewId: string, @Body() dto: LikeReviewDto) {
-    return this.reviewsService.unlikeReview(reviewId, dto.userId);
+  @UseGuards(AuthGuard)
+  unlike(@CurrentUser() user: CurrentUserType, @Param('id') reviewId: string) {
+    return this.reviewsService.unlikeReview(reviewId, user.id);
+  }
+
+  @Patch('reviews/:id')
+  @UseGuards(AuthGuard)
+  update(@CurrentUser() user: CurrentUserType, @Param('id') reviewId: string, @Body() dto: UpdateReviewDto) {
+    return this.reviewsService.updateReview(reviewId, user.id, dto.content);
+  }
+
+  @Delete('reviews/:id')
+  @UseGuards(AuthGuard)
+  delete(@CurrentUser() user: CurrentUserType, @Param('id') reviewId: string) {
+    return this.reviewsService.deleteReview(reviewId, user.id);
   }
 }

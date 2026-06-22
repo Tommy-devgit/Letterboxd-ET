@@ -1,4 +1,6 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '../auth/auth.guard';
+import { CurrentUser, type CurrentUser as CurrentUserType } from '../auth/current-user.decorator';
 import { DiaryService } from './diary.service';
 import { CreateDiaryEntryDto } from './dto/diary.dto';
 
@@ -8,8 +10,9 @@ export class DiaryController {
 
   /** POST /diary */
   @Post()
-  addEntry(@Body() dto: CreateDiaryEntryDto) {
-    return this.diaryService.addEntry(dto);
+  @UseGuards(AuthGuard)
+  addEntry(@CurrentUser() user: CurrentUserType, @Body() dto: CreateDiaryEntryDto) {
+    return this.diaryService.addEntry(user.id, dto);
   }
 
   /** GET /diary?userId=...&page=1&pageSize=20 */

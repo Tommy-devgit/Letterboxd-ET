@@ -1,10 +1,6 @@
 import { IsString, IsUUID, MaxLength, MinLength } from 'class-validator';
 
 export class CreateReviewDto {
-  // userId is accepted explicitly until JWT guards are enabled.
-  @IsUUID()
-  userId!: string;
-
   @IsUUID()
   movieId!: string;
 
@@ -14,8 +10,9 @@ export class CreateReviewDto {
   content!: string;
 }
 
-export class LikeReviewDto {
-  // userId is accepted explicitly until JWT guards are enabled.
-  @IsUUID()
-  userId!: string;
+export class UpdateReviewDto {
+  @IsString()
+  @MinLength(3)
+  @MaxLength(5000)
+  content!: string;
 }

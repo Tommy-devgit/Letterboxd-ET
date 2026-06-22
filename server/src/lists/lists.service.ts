@@ -1,16 +1,34 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { AddMovieToListDto, CreateListDto } from './dto/list.dto';
+import { AddMovieToListDto, CreateListDto, UpdateListDto } from './dto/list.dto';
 
 @Injectable()
 export class ListsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async createList(dto: CreateListDto) {
+  async createList(userId: string, dto: CreateListDto) {
     return this.prisma.list.create({
-      data: { userId: dto.userId, title: dto.title, description: dto.description ?? null },
+      data: { userId, title: dto.title, description: dto.description ?? null },
       include: { _count: { select: { movies: true } } },
     });
+  }
+
+  async updateList(userId: string, listId: string, dto: UpdateListDto) {
+    await this.assertOwnsList(userId, listId);
+    return this.prisma.list.update({
+      where: { id: listId },
+      data: {
+        ...(dto.title !== undefined ? { title: dto.title } : {}),
+        ...(dto.description !== undefined ? { description: dto.description || null } : {}),
+      },
+      include: { _count: { select: { movies: true } } },
+    });
+  }
+
+  async deleteList(userId: string, listId: string) {
+    await this.assertOwnsList(userId, listId);
+    await this.prisma.list.delete({ where: { id: listId } });
+    return { success: true };
   }
 
   async getList(listId: string) {
@@ -21,7 +39,7 @@ export class ListsService {
         movies: {
           include: {
             movie: {
-              select: { id: true, slug: true, title: true, posterUrl: true, releaseDate: true },
+              select: { id: true, slug: true, title: true, posterUrl: true, releaseDate: true, averageRating: true },
             },
           },
           orderBy: { position: 'asc' },
@@ -73,12 +91,13 @@ export class ListsService {
     return { data: lists, page, pageSize, total };
   }
 
-  async addMovieToList(listId: string, dto: AddMovieToListDto) {
+  async addMovieToList(userId: string, listId: string, dto: AddMovieToListDto) {
     const list = await this.prisma.list.findUnique({
       where: { id: listId },
-      select: { id: true, _count: { select: { movies: true } } },
+      select: { id: true, userId: true, _count: { select: { movies: true } } },
     });
     if (!list) throw new NotFoundException('List not found');
+    if (list.userId !== userId) throw new ForbiddenException('Cannot edit another user list');
 
     const position = dto.position ?? list._count.movies;
 
@@ -89,8 +108,15 @@ export class ListsService {
     });
   }
 
-  async removeMovieFromList(listId: string, movieId: string) {
+  async removeMovieFromList(userId: string, listId: string, movieId: string) {
+    await this.assertOwnsList(userId, listId);
     await this.prisma.listMovie.deleteMany({ where: { listId, movieId } });
     return { success: true };
+  }
+
+  private async assertOwnsList(userId: string, listId: string) {
+    const list = await this.prisma.list.findUnique({ where: { id: listId }, select: { userId: true } });
+    if (!list) throw new NotFoundException('List not found');
+    if (list.userId !== userId) throw new ForbiddenException('Cannot edit another user list');
   }
 }

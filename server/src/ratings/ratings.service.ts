@@ -10,7 +10,7 @@ export class RatingsService {
     private readonly moviesService: MoviesService,
   ) {}
 
-  async rateMovie(movieId: string, dto: RateMovieDto) {
+  async rateMovie(userId: string, movieId: string, dto: RateMovieDto) {
     const movie = await this.prisma.movie.findUnique({
       where: { id: movieId },
       select: { id: true },
@@ -18,8 +18,8 @@ export class RatingsService {
     if (!movie) throw new NotFoundException('Movie not found');
 
     const rating = await this.prisma.rating.upsert({
-      where: { userId_movieId: { userId: dto.userId, movieId } },
-      create: { userId: dto.userId, movieId, rating: dto.rating },
+      where: { userId_movieId: { userId, movieId } },
+      create: { userId, movieId, rating: dto.rating },
       update: { rating: dto.rating },
       select: { rating: true, createdAt: true, updatedAt: true },
     });

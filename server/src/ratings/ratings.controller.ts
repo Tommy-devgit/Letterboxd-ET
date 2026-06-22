@@ -1,4 +1,6 @@
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '../auth/auth.guard';
+import { CurrentUser, type CurrentUser as CurrentUserType } from '../auth/current-user.decorator';
 import { RateMovieDto } from './dto/rating.dto';
 import { RatingsService } from './ratings.service';
 
@@ -8,13 +10,15 @@ export class RatingsController {
 
   /** POST /movies/:movieId/ratings */
   @Post()
-  rateMovie(@Param('movieId') movieId: string, @Body() dto: RateMovieDto) {
-    return this.ratingsService.rateMovie(movieId, dto);
+  @UseGuards(AuthGuard)
+  rateMovie(@CurrentUser() user: CurrentUserType, @Param('movieId') movieId: string, @Body() dto: RateMovieDto) {
+    return this.ratingsService.rateMovie(user.id, movieId, dto);
   }
 
-  /** GET /movies/:movieId/ratings/me?userId=... */
+  /** GET /movies/:movieId/ratings/me */
   @Get('me')
-  getMyRating(@Param('movieId') movieId: string, @Query('userId') userId: string) {
-    return this.ratingsService.getUserRating(userId, movieId);
+  @UseGuards(AuthGuard)
+  getMyRating(@CurrentUser() user: CurrentUserType, @Param('movieId') movieId: string) {
+    return this.ratingsService.getUserRating(user.id, movieId);
   }
 }

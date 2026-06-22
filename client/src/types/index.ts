@@ -12,4 +12,5 @@ export interface List { id: string; title: string; description: string | null; c
 export interface User { id: string; username: string; email: string; profilePicture: string | null; bio: string | null; _count?: { ratings: number; reviews: number; watchlist: number; diaryEntries: number; lists: number; followers: number; following: number }; }
 export interface ActivityItem { id: string; type: "watched" | "rated" | "reviewed" | "watchlisted" | "listed"; createdAt: string; rating?: number | null; user: { id: string; username: string; profilePicture: string | null }; movie?: { id: string; slug: string; title: string; posterUrl: string | null }; list?: { id: string; title: string }; }
 export interface PersonSummary { id: string; fullName: string; photoUrl: string | null; _count: { credits: number }; }
+export interface UserProfile extends User { favoriteMovies?: { movie: MovieSummary; position: number }[]; reviews?: (MovieReview & { movie: MovieSummary })[]; diaryEntries?: DiaryEntry[]; lists?: List[]; watchlist?: WatchlistEntry[]; }
 export interface MovieQueryParams { query?: string; genre?: string; language?: LanguageCode; page?: number; pageSize?: number; }

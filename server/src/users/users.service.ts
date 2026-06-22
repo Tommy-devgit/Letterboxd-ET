@@ -1,6 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { randomBytes, scrypt as scryptCallback, timingSafeEqual } from 'crypto';
+import { promisify } from 'util';
 import { PrismaService } from '../prisma/prisma.service';
-import { UpdateUserProfileDto } from './dto/user.dto';
+import { ChangePasswordDto, UpdateAccountDto, UpdateUserProfileDto } from './dto/user.dto';
+
+const scrypt = promisify(scryptCallback);
 
 @Injectable()
 export class UsersService {
@@ -33,12 +37,107 @@ export class UsersService {
     return this.prisma.user.findUnique({ where: { email } });
   }
 
+  async findByUsername(username: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { username: username.toLowerCase() },
+      select: {
+        ...publicUserSelect,
+        favoriteMovies: {
+          include: {
+            movie: {
+              select: { id: true, slug: true, title: true, posterUrl: true, releaseDate: true, averageRating: true },
+            },
+          },
+          orderBy: { position: 'asc' },
+          take: 4,
+        },
+        reviews: {
+          include: {
+            movie: { select: { id: true, slug: true, title: true, posterUrl: true, releaseDate: true } },
+          },
+          orderBy: { createdAt: 'desc' },
+          take: 12,
+        },
+        diaryEntries: {
+          include: {
+            movie: { select: { id: true, slug: true, title: true, posterUrl: true, releaseDate: true, averageRating: true } },
+          },
+          orderBy: { watchedAt: 'desc' },
+          take: 12,
+        },
+        lists: {
+          include: { _count: { select: { movies: true } } },
+          orderBy: { updatedAt: 'desc' },
+          take: 12,
+        },
+        watchlist: {
+          include: {
+            movie: { select: { id: true, slug: true, title: true, posterUrl: true, releaseDate: true, averageRating: true } },
+          },
+          orderBy: { createdAt: 'desc' },
+          take: 12,
+        },
+      },
+    });
+    if (!user) throw new NotFoundException('User not found');
+    return user;
+  }
+
   async updateProfile(id: string, dto: UpdateUserProfileDto) {
     return this.prisma.user.update({
       where: { id },
       data: dto,
       select: publicUserSelect,
     });
+  }
+
+  async updateAccount(id: string, dto: UpdateAccountDto) {
+    const data: UpdateAccountDto = {};
+    if (dto.username) data.username = dto.username.trim().toLowerCase();
+    if (dto.email) data.email = dto.email.trim().toLowerCase();
+
+    if (data.username || data.email) {
+      const conflict = await this.prisma.user.findFirst({
+        where: {
+          id: { not: id },
+          OR: [
+            data.username ? { username: data.username } : {},
+            data.email ? { email: data.email } : {},
+          ],
+        },
+        select: { id: true },
+      });
+      if (conflict) throw new ConflictException('Username or email is already in use');
+    }
+
+    return this.prisma.user.update({ where: { id }, data, select: publicUserSelect });
+  }
+
+  async changePassword(id: string, dto: ChangePasswordDto) {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) throw new NotFoundException('User not found');
+    if (!(await this.verifyPassword(dto.currentPassword, user.passwordHash))) {
+      throw new UnauthorizedException('Current password is incorrect');
+    }
+    await this.prisma.user.update({
+      where: { id },
+      data: { passwordHash: await this.hashPassword(dto.newPassword) },
+    });
+    return { success: true };
+  }
+
+  private async hashPassword(password: string) {
+    const salt = randomBytes(16).toString('hex');
+    const derived = (await scrypt(password, salt, 64)) as Buffer;
+    return `scrypt:${salt}:${derived.toString('hex')}`;
+  }
+
+  private async verifyPassword(password: string, storedHash: string) {
+    const [scheme, salt, hash] = storedHash.split(':');
+    if (scheme !== 'scrypt' || !salt || !hash) return false;
+    const derived = (await scrypt(password, salt, 64)) as Buffer;
+    const expected = Buffer.from(hash, 'hex');
+    return expected.length === derived.length && timingSafeEqual(expected, derived);
   }
 }
 

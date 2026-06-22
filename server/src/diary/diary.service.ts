@@ -6,7 +6,7 @@ import { CreateDiaryEntryDto } from './dto/diary.dto';
 export class DiaryService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async addEntry(dto: CreateDiaryEntryDto) {
+  async addEntry(userId: string, dto: CreateDiaryEntryDto) {
     const movie = await this.prisma.movie.findUnique({
       where: { id: dto.movieId },
       select: { id: true },
@@ -16,7 +16,7 @@ export class DiaryService {
     const [entry] = await this.prisma.$transaction([
       this.prisma.diaryEntry.create({
         data: {
-          userId: dto.userId,
+          userId,
           movieId: dto.movieId,
           watchedAt: dto.watchedAt,
           rating: dto.rating ?? null,
@@ -28,8 +28,8 @@ export class DiaryService {
       }),
       // Mark movie as watched (idempotent — upsert ignores duplicates)
       this.prisma.watchedMovie.upsert({
-        where: { userId_movieId: { userId: dto.userId, movieId: dto.movieId } },
-        create: { userId: dto.userId, movieId: dto.movieId, watchedAt: dto.watchedAt },
+        where: { userId_movieId: { userId, movieId: dto.movieId } },
+        create: { userId, movieId: dto.movieId, watchedAt: dto.watchedAt },
         update: {},
       }),
     ]);
