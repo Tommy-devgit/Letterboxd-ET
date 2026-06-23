@@ -23,12 +23,36 @@ function applyCors(request: any, response: any) {
 function normalizeRequestUrlForNest(request: any) {
   const host = request.headers?.host ?? 'localhost';
   const current = new URL(request.url, `https://${host}`);
-  const normalizedPath = current.pathname.startsWith('/api')
-    ? current.pathname
-    : `/api${current.pathname.startsWith('/') ? current.pathname : `/${current.pathname}`}`;
+  const catchAllPath = getCatchAllPath(request);
+  const pathname = catchAllPath
+    ? `/api/${catchAllPath}`
+    : current.pathname;
+  const normalizedPath = pathname.startsWith('/api')
+    ? pathname
+    : `/api${pathname.startsWith('/') ? pathname : `/${pathname}`}`;
+
+  if (catchAllPath) {
+    current.searchParams.delete('path');
+    current.searchParams.delete('path[]');
+  }
+
   request.url = `${normalizedPath}${current.search}`;
   request.originalUrl = request.url;
   request._parsedUrl = undefined;
+}
+
+function getCatchAllPath(request: any) {
+  const rawPath = request.query?.path ?? request.query?.['path[]'];
+  if (!rawPath) return null;
+
+  const parts = Array.isArray(rawPath) ? rawPath : [rawPath];
+  const cleanParts = parts
+    .flatMap((part) => String(part).split('/'))
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .filter((part) => part !== '[...path]');
+
+  return cleanParts.length ? cleanParts.map(encodeURIComponent).join('/') : null;
 }
 
 async function createServer() {
@@ -79,6 +103,7 @@ export default async function handler(request: any, response: any) {
   if (pathname === '/api/_debug/cors' || pathname === '/_debug/cors') {
     response.statusCode = 200;
     response.setHeader('Content-Type', 'application/json');
+    const databaseUrl = process.env.DATABASE_URL ?? '';
     response.end(
       JSON.stringify({
         ok: true,
@@ -86,6 +111,8 @@ export default async function handler(request: any, response: any) {
         url: request.url,
         origin: request.headers?.origin ?? null,
         clientUrl: process.env.CLIENT_URL ?? null,
+        hasDatabaseUrl: Boolean(databaseUrl),
+        databaseUrlLooksLocal: /localhost|127\.0\.0\.1/i.test(databaseUrl),
       }),
     );
     return;
