@@ -22,6 +22,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let active = true;
+
+    if (!hasSessionCookie()) {
+      clearAuth();
+      setReady(true);
+      return () => {
+        active = false;
+      };
+    }
+
     authApi
       .refresh()
       .then((session) => {
@@ -52,6 +61,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+function hasSessionCookie() {
+  if (typeof document === "undefined") return false;
+  return document.cookie.split(";").some((part) => part.trim().startsWith("lbxd_et_session="));
 }
 
 export function useAuth() {

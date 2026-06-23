@@ -13,6 +13,8 @@
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:seed": "npm run build && node dist/prisma/seed.js",
+    "db:import:etmdb": "npm run build && node dist/prisma/import-etmdb.js",
+    "db:hydrate": "npm run db:import:etmdb && npm run db:seed",
     "db:setup": "npm run db:deploy && npm run db:seed",
     "db:studio": "prisma studio"
   },
