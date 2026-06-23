@@ -7,7 +7,9 @@
     "node": "20.x"
   },
   "scripts": {
-    "build": "tsc --noEmit"
+    "postinstall": "prisma generate --schema=../server/prisma/schema.prisma",
+    "generate": "prisma generate --schema=../server/prisma/schema.prisma",
+    "build": "prisma generate --schema=../server/prisma/schema.prisma && tsc --noEmit"
   },
   "dependencies": {
     "@letterboxd-et/server": "file:../server",
@@ -23,6 +25,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.19.41",
+    "prisma": "^6.19.3",
     "typescript": "^5"
   }
 }
