@@ -11,6 +11,9 @@
     "typecheck": "tsc --noEmit",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
+    "db:seed": "npm run build && node dist/prisma/seed.js",
+    "db:setup": "npm run db:deploy && npm run db:seed",
     "db:studio": "prisma studio"
   },
   "dependencies": {

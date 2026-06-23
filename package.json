@@ -18,6 +18,9 @@
     "lint:client": "npm --prefix client run lint",
     "db:generate": "npm --prefix server run db:generate",
     "db:migrate": "npm --prefix server run db:migrate",
+    "db:deploy": "npm --prefix server run db:deploy",
+    "db:seed": "npm --prefix server run db:seed",
+    "db:setup": "npm --prefix server run db:setup",
     "db:studio": "npm --prefix server run db:studio"
   },
   "engines": {

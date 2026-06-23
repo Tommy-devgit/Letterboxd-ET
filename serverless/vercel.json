@@ -9,6 +9,12 @@
       "maxDuration": 30
     }
   },
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "/api/index?path=:path*"
+    }
+  ],
   "headers": [
     {
       "source": "/api/(.*)",

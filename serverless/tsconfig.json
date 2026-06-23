@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
-    "module": "CommonJS",
+    "module": "Node16",
     "target": "ES2022",
-    "moduleResolution": "Node",
+    "moduleResolution": "Node16",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true,
@@ -12,6 +12,7 @@
     "skipLibCheck": true,
     "types": ["node"],
     "paths": {
+      "@letterboxd-et/server/src/app.module": ["../server/src/app.module.ts"],
       "@letterboxd-et/server/*": ["../server/*"],
       "@letterboxd-et/shared": ["../packages/shared/src"],
       "@letterboxd-et/shared/*": ["../packages/shared/*"],
