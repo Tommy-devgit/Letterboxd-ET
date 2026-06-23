@@ -2,7 +2,6 @@ import 'reflect-metadata';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from '@letterboxd-et/server/src/app.module';
 
 let cachedServer: any = null;
 
@@ -29,6 +28,7 @@ function applyCors(request: any, response: any) {
 async function createServer() {
   if (cachedServer) return cachedServer;
 
+  const { AppModule } = await import('@letterboxd-et/server/src/app.module');
   const app = await NestFactory.create(AppModule, {
     logger: ['error', 'warn', 'log'],
   });
@@ -67,6 +67,12 @@ export default async function handler(request: any, response: any) {
   } catch (error) {
     console.error(error);
     response.statusCode = 500;
-    response.end(JSON.stringify({ message: 'Internal server error' }));
+    response.setHeader('Content-Type', 'application/json');
+    response.end(
+      JSON.stringify({
+        message: 'Internal server error',
+        error: error instanceof Error ? error.message : String(error),
+      }),
+    );
   }
 }
