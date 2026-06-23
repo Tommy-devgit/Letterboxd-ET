@@ -4,6 +4,9 @@
   "functions": {
     "api/index.ts": {
       "maxDuration": 30
+    },
+    "api/[...path].ts": {
+      "maxDuration": 30
     }
   },
   "headers": [
@@ -31,19 +34,6 @@
           "value": "Origin"
         }
       ]
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "headers": {
-        "Access-Control-Allow-Origin": "https://letterboxd-et-client.vercel.app",
-        "Access-Control-Allow-Credentials": "true",
-        "Access-Control-Allow-Methods": "GET,POST,PATCH,PUT,DELETE,OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-        "Vary": "Origin"
-      },
-      "dest": "/api/index.ts"
     }
   ]
 }

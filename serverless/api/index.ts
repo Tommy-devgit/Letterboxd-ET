@@ -1,8 +1,3 @@
-import 'reflect-metadata';
-import { ValidationPipe } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { NestFactory } from '@nestjs/core';
-
 let cachedServer: any = null;
 
 const allowedOrigins = new Set(
@@ -28,7 +23,13 @@ function applyCors(request: any, response: any) {
 async function createServer() {
   if (cachedServer) return cachedServer;
 
-  const { AppModule } = await import('@letterboxd-et/server/src/app.module');
+  await import('reflect-metadata');
+  const [{ ValidationPipe }, { ConfigService }, { NestFactory }, { AppModule }] = await Promise.all([
+    import('@nestjs/common'),
+    import('@nestjs/config'),
+    import('@nestjs/core'),
+    import('@letterboxd-et/server/src/app.module'),
+  ]);
   const app = await NestFactory.create(AppModule, {
     logger: ['error', 'warn', 'log'],
   });
@@ -58,6 +59,20 @@ export default async function handler(request: any, response: any) {
   if (request.method === 'OPTIONS') {
     response.statusCode = 204;
     response.end();
+    return;
+  }
+
+  const pathname = new URL(request.url, `https://${request.headers.host ?? 'localhost'}`).pathname;
+  if (pathname === '/api/_debug/cors') {
+    response.statusCode = 200;
+    response.setHeader('Content-Type', 'application/json');
+    response.end(
+      JSON.stringify({
+        ok: true,
+        origin: request.headers?.origin ?? null,
+        clientUrl: process.env.CLIENT_URL ?? null,
+      }),
+    );
     return;
   }
 
