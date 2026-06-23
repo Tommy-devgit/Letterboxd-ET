@@ -1,0 +1,3 @@
+Letterboxd-ET API
+
+Use /api for backend endpoints.
