@@ -16,8 +16,19 @@ function applyCors(request: any, response: any) {
   }
   response.setHeader('Access-Control-Allow-Credentials', 'true');
   response.setHeader('Access-Control-Allow-Methods', 'GET,POST,PATCH,PUT,DELETE,OPTIONS');
-  response.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  response.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Origin, X-Requested-With');
   response.setHeader('Access-Control-Max-Age', '86400');
+}
+
+function normalizeRequestUrlForNest(request: any) {
+  const host = request.headers?.host ?? 'localhost';
+  const current = new URL(request.url, `https://${host}`);
+  const normalizedPath = current.pathname.startsWith('/api')
+    ? current.pathname
+    : `/api${current.pathname.startsWith('/') ? current.pathname : `/${current.pathname}`}`;
+  request.url = `${normalizedPath}${current.search}`;
+  request.originalUrl = request.url;
+  request._parsedUrl = undefined;
 }
 
 async function createServer() {
@@ -62,13 +73,17 @@ export default async function handler(request: any, response: any) {
     return;
   }
 
+  normalizeRequestUrlForNest(request);
+
   const pathname = new URL(request.url, `https://${request.headers.host ?? 'localhost'}`).pathname;
-  if (pathname === '/api/_debug/cors') {
+  if (pathname === '/api/_debug/cors' || pathname === '/_debug/cors') {
     response.statusCode = 200;
     response.setHeader('Content-Type', 'application/json');
     response.end(
       JSON.stringify({
         ok: true,
+        path: pathname,
+        url: request.url,
         origin: request.headers?.origin ?? null,
         clientUrl: process.env.CLIENT_URL ?? null,
       }),

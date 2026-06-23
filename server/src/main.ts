@@ -6,10 +6,17 @@ import { AppModule } from "./app.module";
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const config = app.get(ConfigService);
+  const allowedOrigins = [
+    config.get<string>("CLIENT_URL"),
+    "https://letterboxd-et-client.vercel.app",
+    "http://localhost:3000"
+  ].filter(Boolean) as string[];
 
   app.enableCors({
-    origin: config.get<string>("CLIENT_URL") ?? "http://localhost:3000",
-    credentials: true
+    origin: allowedOrigins,
+    credentials: true,
+    methods: ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "Accept", "Origin", "X-Requested-With"]
   });
   app.setGlobalPrefix("api");
   app.useGlobalPipes(
