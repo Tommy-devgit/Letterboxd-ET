@@ -6,6 +6,26 @@ import { AppModule } from '@letterboxd-et/server/src/app.module';
 
 let cachedServer: any = null;
 
+const allowedOrigins = new Set(
+  [
+    process.env.CLIENT_URL,
+    'https://letterboxd-et-client.vercel.app',
+    'http://localhost:3000',
+  ].filter(Boolean),
+);
+
+function applyCors(request: any, response: any) {
+  const origin = request.headers?.origin;
+  if (origin && allowedOrigins.has(origin)) {
+    response.setHeader('Access-Control-Allow-Origin', origin);
+    response.setHeader('Vary', 'Origin');
+  }
+  response.setHeader('Access-Control-Allow-Credentials', 'true');
+  response.setHeader('Access-Control-Allow-Methods', 'GET,POST,PATCH,PUT,DELETE,OPTIONS');
+  response.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  response.setHeader('Access-Control-Max-Age', '86400');
+}
+
 async function createServer() {
   if (cachedServer) return cachedServer;
 
@@ -15,7 +35,7 @@ async function createServer() {
   const config = app.get(ConfigService);
 
   app.enableCors({
-    origin: config.get<string>('CLIENT_URL') ?? process.env.CLIENT_URL ?? true,
+    origin: Array.from(allowedOrigins),
     credentials: true,
   });
   app.setGlobalPrefix('api');
@@ -33,6 +53,20 @@ async function createServer() {
 }
 
 export default async function handler(request: any, response: any) {
-  const server = await createServer();
-  return server(request, response);
+  applyCors(request, response);
+
+  if (request.method === 'OPTIONS') {
+    response.statusCode = 204;
+    response.end();
+    return;
+  }
+
+  try {
+    const server = await createServer();
+    return server(request, response);
+  } catch (error) {
+    console.error(error);
+    response.statusCode = 500;
+    response.end(JSON.stringify({ message: 'Internal server error' }));
+  }
 }
