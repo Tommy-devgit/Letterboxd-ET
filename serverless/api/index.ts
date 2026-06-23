@@ -59,13 +59,12 @@ async function createServer() {
   if (cachedServer) return cachedServer;
 
   await import('reflect-metadata');
-  const appModulePath = '@letterboxd-et/server/src/app.module';
-  const [{ ValidationPipe }, { ConfigService }, { NestFactory }, { AppModule }] = await Promise.all([
+  const [{ ValidationPipe }, { ConfigService }, { NestFactory }] = await Promise.all([
     import('@nestjs/common'),
     import('@nestjs/config'),
     import('@nestjs/core'),
-    import(appModulePath),
   ]);
+  const { AppModule } = require('../../server/src/app.module');
   const app = await NestFactory.create(AppModule, {
     logger: ['error', 'warn', 'log'],
   });
