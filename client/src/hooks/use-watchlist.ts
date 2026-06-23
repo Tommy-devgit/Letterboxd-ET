@@ -16,14 +16,14 @@ export function useWatchlistMutations(userId: string | null) {
   const queryClient = useQueryClient();
 
   const add = useMutation({
-    mutationFn: (movieId: string) => watchlistApi.add(movieId),
+    mutationFn: (movieId: string) => watchlistApi.add(movieId, userId ?? undefined),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: keys.watchlist.all });
     },
   });
 
   const remove = useMutation({
-    mutationFn: (movieId: string) => watchlistApi.remove(movieId),
+    mutationFn: (movieId: string) => watchlistApi.remove(movieId, userId ?? undefined),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: keys.watchlist.all });
     },

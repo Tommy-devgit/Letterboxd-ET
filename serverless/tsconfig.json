@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "ES2022",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "types": ["node"],
+    "baseUrl": ".",
+    "paths": {
+      "@letterboxd-et/server/*": ["../server/*"],
+      "@letterboxd-et/shared": ["../packages/shared/src"],
+      "@letterboxd-et/shared/*": ["../packages/shared/*"],
+      "@nestjs/*": ["../server/node_modules/@nestjs/*"],
+      "@prisma/client": ["../server/node_modules/@prisma/client"],
+      "class-transformer": ["../server/node_modules/class-transformer"],
+      "class-validator": ["../server/node_modules/class-validator"],
+      "reflect-metadata": ["../server/node_modules/reflect-metadata"],
+      "rxjs": ["../server/node_modules/rxjs"]
+    }
+  },
+  "include": ["api/**/*.ts"]
+}

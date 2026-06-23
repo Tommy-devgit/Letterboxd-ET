@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { Heart, LogIn } from "lucide-react";
+import { Heart, LogIn, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { MovieGrid, MovieGridSkeleton } from "@/components/movie/movie-grid";
+import { MovieGridSkeleton } from "@/components/movie/movie-grid";
+import { MovieCard } from "@/components/movie/movie-card";
 import { Pagination } from "@/components/common/pagination";
 import { EmptyState } from "@/components/common/empty-state";
 import { ErrorState } from "@/components/common/error-state";
-import { useWatchlist } from "@/hooks/use-watchlist";
+import { useWatchlist, useWatchlistMutations } from "@/hooks/use-watchlist";
 import { useAuthStore } from "@/store/auth";
 import { useState } from "react";
 import { ProtectedRoute } from "@/components/auth/protected-route";
@@ -28,6 +29,7 @@ function WatchlistContent() {
     user?.id ?? null,
     page
   );
+  const { remove } = useWatchlistMutations(user?.id ?? null);
 
   if (!user) {
     return (
@@ -81,7 +83,24 @@ function WatchlistContent() {
       )}
       {movies.length > 0 && (
         <>
-          <MovieGrid movies={movies} />
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+            {movies.map((movie) => (
+              <div key={movie.id} className="group relative">
+                <MovieCard movie={movie} />
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  disabled={remove.isPending}
+                  onClick={() => remove.mutate(movie.id)}
+                  className="mt-2 w-full rounded-[4px] border-border-muted text-xs"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  Remove
+                </Button>
+              </div>
+            ))}
+          </div>
           <div className="mt-8">
             <Pagination
               page={page}

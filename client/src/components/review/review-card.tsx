@@ -27,7 +27,7 @@ export function ReviewCard({ review, onChanged }: ReviewCardProps) {
   async function save() {
     setBusy(true);
     try {
-      await reviewsApi.update(review.id, { content });
+      await reviewsApi.update(review.id, { userId: user?.id, content });
       setEditing(false);
       onChanged?.();
     } finally {
@@ -38,7 +38,7 @@ export function ReviewCard({ review, onChanged }: ReviewCardProps) {
   async function remove() {
     setBusy(true);
     try {
-      await reviewsApi.delete(review.id);
+      await reviewsApi.delete(review.id, user?.id);
       onChanged?.();
     } finally {
       setBusy(false);
@@ -49,8 +49,8 @@ export function ReviewCard({ review, onChanged }: ReviewCardProps) {
     if (!user) return;
     setLiked((value) => !value);
     try {
-      if (liked) await reviewsApi.unlike(review.id);
-      else await reviewsApi.like(review.id);
+      if (liked) await reviewsApi.unlike(review.id, user.id);
+      else await reviewsApi.like(review.id, user.id);
       onChanged?.();
     } catch {
       setLiked((value) => !value);

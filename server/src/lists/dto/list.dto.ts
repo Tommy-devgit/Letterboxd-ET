@@ -1,6 +1,10 @@
 import { IsInt, IsOptional, IsString, IsUUID, MaxLength, Min, MinLength } from 'class-validator';
 
 export class CreateListDto {
+  @IsOptional()
+  @IsUUID()
+  userId?: string;
+
   @IsString()
   @MinLength(1)
   @MaxLength(200)

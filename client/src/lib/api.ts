@@ -39,31 +39,31 @@ export const reviewsApi = {
     api.get<PaginatedResponse<MovieReview>>("/reviews", { params: { page, pageSize } }).then((r) => r.data),
   getByMovie: (movieId: string, page = 1, pageSize = 20) =>
     api.get<PaginatedResponse<MovieReview>>(`/movies/${movieId}/reviews`, { params: { page, pageSize } }).then((r) => r.data),
-  create: (dto: { movieId: string; content: string }) =>
+  create: (dto: { userId?: string; movieId: string; content: string }) =>
     api.post<MovieReview>("/reviews", dto).then((r) => r.data),
-  update: (reviewId: string, dto: { content: string }) =>
+  update: (reviewId: string, dto: { userId?: string; content: string }) =>
     api.patch<MovieReview>(`/reviews/${reviewId}`, dto).then((r) => r.data),
-  delete: (reviewId: string) =>
-    api.delete<{ success: true }>(`/reviews/${reviewId}`).then((r) => r.data),
-  like: (reviewId: string) =>
-    api.post(`/reviews/${reviewId}/likes`).then((r) => r.data),
-  unlike: (reviewId: string) =>
-    api.delete(`/reviews/${reviewId}/likes`).then((r) => r.data),
+  delete: (reviewId: string, userId?: string) =>
+    api.delete<{ success: true }>(`/reviews/${reviewId}`, { data: userId ? { userId } : undefined }).then((r) => r.data),
+  like: (reviewId: string, userId?: string) =>
+    api.post(`/reviews/${reviewId}/likes`, userId ? { userId } : undefined).then((r) => r.data),
+  unlike: (reviewId: string, userId?: string) =>
+    api.delete(`/reviews/${reviewId}/likes`, { data: userId ? { userId } : undefined }).then((r) => r.data),
 };
 
 export const watchlistApi = {
   get: (userId: string, page = 1, pageSize = 20) =>
     api.get<PaginatedResponse<WatchlistEntry>>("/watchlist", { params: { userId, page, pageSize } }).then((r) => r.data),
-  add: (movieId: string) =>
-    api.post("/watchlist", { movieId }).then((r) => r.data),
-  remove: (movieId: string) =>
-    api.delete(`/watchlist/${movieId}`).then((r) => r.data),
+  add: (movieId: string, userId?: string) =>
+    api.post("/watchlist", { movieId, userId }).then((r) => r.data),
+  remove: (movieId: string, userId?: string) =>
+    api.delete(`/watchlist/${movieId}`, { params: userId ? { userId } : undefined }).then((r) => r.data),
 };
 
 export const diaryApi = {
   get: (userId: string, page = 1, pageSize = 20) =>
     api.get<PaginatedResponse<DiaryEntry>>("/diary", { params: { userId, page, pageSize } }).then((r) => r.data),
-  add: (dto: { movieId: string; watchedAt: string; rating?: number; notes?: string }) =>
+  add: (dto: { userId?: string; movieId: string; watchedAt: string; rating?: number; notes?: string }) =>
     api.post("/diary", dto).then((r) => r.data),
 };
 
@@ -73,7 +73,7 @@ export const listsApi = {
   getUserLists: (userId: string) =>
     api.get<List[]>("/lists", { params: { userId } }).then((r) => r.data),
   getList: (id: string) => api.get<List>(`/lists/${id}`).then((r) => r.data),
-  create: (dto: { title: string; description?: string }) =>
+  create: (dto: { userId?: string; title: string; description?: string }) =>
     api.post<List>("/lists", dto).then((r) => r.data),
   update: (id: string, dto: { title?: string; description?: string }) =>
     api.patch<List>(`/lists/${id}`, dto).then((r) => r.data),
@@ -123,8 +123,8 @@ export const authApi = {
 };
 
 export const ratingsApi = {
-  rate: (movieId: string, dto: { rating: number }) =>
+  rate: (movieId: string, dto: { userId?: string; rating: number }) =>
     api.post(`/movies/${movieId}/ratings`, dto).then((r) => r.data),
-  getMyRating: (movieId: string) =>
-    api.get<{ rating: number }>(`/movies/${movieId}/ratings/me`).then((r) => r.data),
+  getMyRating: (movieId: string, userId?: string) =>
+    api.get<{ rating: number }>(`/movies/${movieId}/ratings/me`, { params: userId ? { userId } : undefined }).then((r) => r.data),
 };

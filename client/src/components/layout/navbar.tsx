@@ -17,6 +17,7 @@ import {
   CalendarDays,
   Plus,
   LogOut,
+  Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -76,7 +77,14 @@ export function Navbar() {
             <div className="hidden sm:flex items-center gap-2">
               {isAuthenticated && user ? (
                 <>
-                  <span className="lb-nav text-[#d8e0e8]">{user.username}</span>
+                  <Link href={`/u/${user.username}`} className="lb-nav text-[#d8e0e8] hover:text-white">
+                    {user.username}
+                  </Link>
+                  <Button size="sm" variant="ghost" className="h-8 rounded-[3px] px-2" asChild>
+                    <Link href="/settings" aria-label="Settings">
+                      <Settings className="h-3.5 w-3.5" />
+                    </Link>
+                  </Button>
                   <Button size="sm" variant="ghost" className="h-8 rounded-[3px] px-2" onClick={() => void logout()}>
                     <LogOut className="h-3.5 w-3.5" />
                   </Button>
@@ -122,6 +130,26 @@ export function Navbar() {
               </Link>
             ))}
             <div className="mt-2 pt-2 border-t border-border">
+              {isAuthenticated && user ? (
+                <>
+                  <Link
+                    href={`/u/${user.username}`}
+                    className="flex items-center gap-3 px-2 py-2.5 lb-nav text-[#738292] transition-colors hover:text-[#d8e0e8]"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    <User className="h-4 w-4" />
+                    Profile
+                  </Link>
+                  <Link
+                    href="/settings"
+                    className="flex items-center gap-3 px-2 py-2.5 lb-nav text-[#738292] transition-colors hover:text-[#d8e0e8]"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    <Settings className="h-4 w-4" />
+                    Settings
+                  </Link>
+                </>
+              ) : null}
               <Link
                 href="/watchlist"
                 className="flex items-center gap-3 px-2 py-2.5 lb-nav text-[#738292] transition-colors hover:text-[#d8e0e8]"

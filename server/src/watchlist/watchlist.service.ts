@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -12,13 +12,10 @@ export class WatchlistService {
     });
     if (!movie) throw new NotFoundException('Movie not found');
 
-    const existing = await this.prisma.watchlist.findUnique({
+    return this.prisma.watchlist.upsert({
       where: { userId_movieId: { userId, movieId } },
-    });
-    if (existing) throw new ConflictException('Movie already in watchlist');
-
-    return this.prisma.watchlist.create({
-      data: { userId, movieId },
+      create: { userId, movieId },
+      update: {},
       include: {
         movie: { select: { id: true, slug: true, title: true, posterUrl: true } },
       },
@@ -36,14 +33,7 @@ export class WatchlistService {
         where: { userId },
         include: {
           movie: {
-            select: {
-              id: true,
-              slug: true,
-              title: true,
-              posterUrl: true,
-              averageRating: true,
-              releaseDate: true,
-            },
+            include: watchlistMovieInclude,
           },
         },
         orderBy: { createdAt: 'desc' },
@@ -53,6 +43,40 @@ export class WatchlistService {
       this.prisma.watchlist.count({ where: { userId } }),
     ]);
 
-    return { data: items, page, pageSize, total };
+    return {
+      data: items.map((item) => ({
+        createdAt: item.createdAt,
+        movie: toMovieSummary(item.movie),
+      })),
+      page,
+      pageSize,
+      total,
+    };
   }
+}
+
+const watchlistMovieInclude = {
+  genres: { include: { genre: true } },
+  credits: {
+    where: { role: 'DIRECTOR' as const },
+    include: { person: true },
+    take: 3,
+  },
+  _count: { select: { reviews: true } },
+} as const;
+
+function toMovieSummary(movie: any) {
+  return {
+    id: movie.id,
+    slug: movie.slug,
+    title: movie.title,
+    originalTitle: movie.originalTitle ?? null,
+    releaseYear: movie.releaseDate ? movie.releaseDate.getFullYear() : null,
+    synopsis: movie.synopsis ?? null,
+    posterUrl: movie.posterUrl ?? null,
+    averageRating: movie.averageRating ?? 0,
+    reviewCount: movie._count?.reviews ?? 0,
+    genres: movie.genres?.map((entry: any) => entry.genre.name) ?? [],
+    directors: movie.credits?.map((credit: any) => credit.person.fullName) ?? [],
+  };
 }

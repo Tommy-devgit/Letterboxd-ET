@@ -30,9 +30,14 @@ export function MovieActionPanel({ movieId, movieSlug, reviews }: MovieActionPan
 
   const myRating = useQuery({
     queryKey: user ? keys.ratings.mine(movieId, user.id) : ["ratings", "guest", movieId],
-    queryFn: () => ratingsApi.getMyRating(movieId),
+    queryFn: () => ratingsApi.getMyRating(movieId, user?.id),
     enabled: Boolean(user),
     retry: false,
+  });
+  const myWatchlist = useQuery({
+    queryKey: user ? keys.watchlist.list(user.id, 1) : ["watchlist", "guest", movieId],
+    queryFn: () => watchlistApi.get(user!.id, 1, 100),
+    enabled: Boolean(user),
   });
 
   useEffect(() => {
@@ -42,6 +47,12 @@ export function MovieActionPanel({ movieId, movieSlug, reviews }: MovieActionPan
   useEffect(() => {
     if (mine?.content) setContent(mine.content);
   }, [mine?.content]);
+
+  useEffect(() => {
+    if (myWatchlist.data) {
+      setWatchlisted(myWatchlist.data.data.some((entry) => entry.movie.id === movieId));
+    }
+  }, [movieId, myWatchlist.data]);
 
   async function invalidateMovie() {
     await Promise.all([
@@ -56,7 +67,7 @@ export function MovieActionPanel({ movieId, movieSlug, reviews }: MovieActionPan
     setRating(value);
     setBusy("rating");
     try {
-      await ratingsApi.rate(movieId, { rating: value });
+      await ratingsApi.rate(movieId, { userId: user.id, rating: value });
       await invalidateMovie();
     } finally {
       setBusy(null);
@@ -67,8 +78,8 @@ export function MovieActionPanel({ movieId, movieSlug, reviews }: MovieActionPan
     if (!user) return;
     setBusy("watchlist");
     try {
-      if (watchlisted) await watchlistApi.remove(movieId);
-      else await watchlistApi.add(movieId);
+      if (watchlisted) await watchlistApi.remove(movieId, user.id);
+      else await watchlistApi.add(movieId, user.id);
       setWatchlisted((value) => !value);
       await queryClient.invalidateQueries({ queryKey: keys.watchlist.all });
     } finally {
@@ -80,7 +91,7 @@ export function MovieActionPanel({ movieId, movieSlug, reviews }: MovieActionPan
     if (!user || content.trim().length < 3) return;
     setBusy("review");
     try {
-      await reviewsApi.create({ movieId, content: content.trim() });
+      await reviewsApi.create({ userId: user.id, movieId, content: content.trim() });
       await invalidateMovie();
     } finally {
       setBusy(null);

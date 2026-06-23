@@ -1,6 +1,10 @@
-import { IsString, IsUUID, MaxLength, MinLength } from 'class-validator';
+import { IsOptional, IsString, IsUUID, MaxLength, MinLength } from 'class-validator';
 
 export class CreateReviewDto {
+  @IsOptional()
+  @IsUUID()
+  userId?: string;
+
   @IsUUID()
   movieId!: string;
 
@@ -11,8 +15,18 @@ export class CreateReviewDto {
 }
 
 export class UpdateReviewDto {
+  @IsOptional()
+  @IsUUID()
+  userId?: string;
+
   @IsString()
   @MinLength(3)
   @MaxLength(5000)
   content!: string;
+}
+
+export class LikeReviewDto {
+  @IsOptional()
+  @IsUUID()
+  userId?: string;
 }

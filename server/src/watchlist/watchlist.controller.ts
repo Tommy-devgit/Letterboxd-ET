@@ -1,10 +1,14 @@
 import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
-import { IsUUID } from 'class-validator';
+import { IsOptional, IsUUID } from 'class-validator';
 import { AuthGuard } from '../auth/auth.guard';
 import { CurrentUser, type CurrentUser as CurrentUserType } from '../auth/current-user.decorator';
 import { WatchlistService } from './watchlist.service';
 
 class WatchlistAddDto {
+  @IsOptional()
+  @IsUUID()
+  userId?: string;
+
   @IsUUID()
   movieId!: string;
 }

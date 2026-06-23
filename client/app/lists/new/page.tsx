@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { listsApi } from "@/lib/api";
+import { useAuthStore } from "@/store/auth";
 
 export default function NewListPage() {
   return (
@@ -19,6 +20,7 @@ export default function NewListPage() {
 
 function NewListContent() {
   const router = useRouter();
+  const { user } = useAuthStore();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [message, setMessage] = useState("");
@@ -29,7 +31,7 @@ function NewListContent() {
     setSaving(true);
     setMessage("");
     try {
-      const list = await listsApi.create({ title: title.trim(), description: description.trim() || undefined });
+      const list = await listsApi.create({ userId: user?.id, title: title.trim(), description: description.trim() || undefined });
       router.push(`/lists/${list.id}`);
     } catch {
       setMessage("Could not create this list. Try a shorter title or sign in again.");
