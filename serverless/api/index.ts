@@ -34,6 +34,10 @@ function normalizeRequestUrlForNest(request: any) {
   if (catchAllPath) {
     current.searchParams.delete('path');
     current.searchParams.delete('path[]');
+    if (request.query) {
+      delete request.query.path;
+      delete request.query['path[]'];
+    }
   }
 
   request.url = `${normalizedPath}${current.search}`;
@@ -79,7 +83,7 @@ async function createServer() {
     new ValidationPipe({
       whitelist: true,
       transform: true,
-      forbidNonWhitelisted: true,
+      forbidNonWhitelisted: false,
     }),
   );
 
