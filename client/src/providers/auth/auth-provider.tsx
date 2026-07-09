@@ -1,6 +1,8 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+/* eslint-disable react-hooks/set-state-in-effect */
+
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { authApi } from "@/lib/api";
 import { useAuthStore } from "@/store/auth";
 import type { User } from "@/types";
@@ -45,19 +47,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       active = false;
     };
-  }, []);
+  }, [clearAuth, login, token]);
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     try {
       await authApi.logout();
     } finally {
       clearAuth();
     }
-  };
+  }, [clearAuth]);
 
   const value = useMemo(
     () => ({ user, token, isAuthenticated, login, logout, ready }),
-    [user, token, isAuthenticated, login, ready],
+    [user, token, isAuthenticated, login, logout, ready],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

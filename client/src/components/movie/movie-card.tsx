@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { BookmarkPlus, Eye, Star } from "lucide-react";
+import { BookmarkPlus, Eye } from "lucide-react";
+import { RatingStars } from "@/components/common/rating-stars";
 import { cn } from "@/lib/utils";
 import { MoviePoster } from "./movie-poster";
 import type { MovieSummary } from "@/types";
@@ -35,12 +36,7 @@ export function MovieCard({ movie, className, variant = "default" }: MovieCardPr
           <p className="text-sm font-medium text-foreground truncate">{movie.title}</p>
           <p className="text-xs text-text-muted">{movie.releaseYear}</p>
           {movie.averageRating > 0 && (
-            <div className="flex items-center gap-1 mt-0.5">
-              <Star className="h-3 w-3 text-rating fill-rating" />
-              <span className="text-xs text-foreground-muted">
-                {movie.averageRating.toFixed(1)}
-              </span>
-            </div>
+            <RatingStars rating={movie.averageRating} size="xs" showValue className="mt-0.5" />
           )}
         </div>
       </Link>
@@ -87,10 +83,7 @@ export function MovieCard({ movie, className, variant = "default" }: MovieCardPr
         </div>
         {movie.averageRating > 0 && (
           <div className="ml-auto flex flex-col items-center justify-center shrink-0 pl-4">
-            <Star className="h-4 w-4 text-rating fill-rating" />
-            <span className="text-sm font-medium text-foreground-muted mt-0.5">
-              {movie.averageRating.toFixed(1)}
-            </span>
+            <RatingStars rating={movie.averageRating} size="sm" showValue className="flex-col gap-0.5" />
           </div>
         )}
       </Link>
@@ -112,10 +105,7 @@ export function MovieCard({ movie, className, variant = "default" }: MovieCardPr
 
         {movie.averageRating > 0 && (
           <div className="absolute left-2 top-2 flex items-center gap-1 rounded-[3px] bg-black/75 px-1.5 py-0.5 opacity-0 backdrop-blur-sm transition-opacity duration-300 group-hover:opacity-100">
-            <Star className="h-3 w-3 fill-[#54b948] text-[#54b948]" />
-            <span className="text-xs font-medium text-white">
-              {movie.averageRating.toFixed(1)}
-            </span>
+            <RatingStars rating={movie.averageRating} size="xs" showValue />
           </div>
         )}
 

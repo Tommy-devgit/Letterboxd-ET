@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { createHmac, randomBytes, scrypt as scryptCallback, timingSafeEqual } from 'crypto';
 import { promisify } from 'util';
 import { PrismaService } from '../prisma/prisma.service';
-import { ForgotPasswordDto, LoginDto, RegisterDto, AuthTokenPayload } from './dto/auth.dto';
+import { ChangePasswordDto, ForgotPasswordDto, LoginDto, RegisterDto, AuthTokenPayload } from './dto/auth.dto';
 
 const scrypt = promisify(scryptCallback);
 const ACCESS_TTL_SECONDS = 15 * 60;
@@ -84,6 +84,19 @@ export class AuthService {
       email: dto.email.trim().toLowerCase(),
       status: 'password-reset-request-accepted',
     };
+  }
+
+  async changePassword(userId: string, dto: ChangePasswordDto) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new UnauthorizedException('User no longer exists');
+    if (!(await this.verifyPassword(dto.currentPassword, user.passwordHash))) {
+      throw new UnauthorizedException('Current password is incorrect');
+    }
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash: await this.hashPassword(dto.newPassword) },
+    });
+    return { success: true, message: 'Password updated successfully' };
   }
 
   private createSession(user: AuthUser) {

@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { BookOpen, LogIn, Star } from "lucide-react";
+import { BookOpen, LogIn } from "lucide-react";
+import { RatingStars } from "@/components/common/rating-stars";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/common/empty-state";
@@ -85,14 +86,7 @@ function DiaryList({ userId }: { userId: string }) {
                 </p>
               )}
             </div>
-            {entry.rating && (
-              <div className="flex items-center gap-1 shrink-0">
-                <Star className="h-3.5 w-3.5 text-rating fill-rating" />
-                <span className="text-sm font-medium text-foreground-muted">
-                  {entry.rating}
-                </span>
-              </div>
-            )}
+            {entry.rating && <RatingStars rating={entry.rating} size="sm" showValue className="shrink-0" />}
           </Link>
         ))}
       </div>

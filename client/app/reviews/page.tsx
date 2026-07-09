@@ -1,13 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { Star } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { ErrorState } from "@/components/common/error-state";
+import { RatingStars } from "@/components/common/rating-stars";
 import { Skeleton } from "@/components/ui/skeleton";
 import { reviewsApi } from "@/lib/api";
 import { keys } from "@/lib/query-keys";
-import { formatStarRating } from "@/lib/utils";
 
 export default function ReviewsPage() {
   const { data, isLoading, error, refetch } = useQuery({
@@ -26,7 +25,7 @@ export default function ReviewsPage() {
             <div className="mb-3 flex items-center gap-2">
               <span className="grid h-8 w-8 place-items-center rounded-full bg-[#1d2a35] text-xs font-bold text-[#9aa8b5]">{review.user.username.slice(0, 2).toUpperCase()}</span>
               <div><p className="text-sm font-semibold text-[#d8e0e8]">{review.user.username}</p><p className="lb-caption">reviewed {review.movie?.title ?? "a film"}</p></div>
-              <span className="ml-auto flex items-center gap-1 text-xs font-semibold text-[#54b948]"><Star className="h-3 w-3 fill-[#54b948]" />{formatStarRating(review.rating)}</span>
+              <RatingStars rating={review.rating} size="xs" showValue className="ml-auto shrink-0" />
             </div>
             <p className="lb-body">{review.content}</p>
             {review.movie && <Link href={`/movie/${review.movie.slug}`} className="mt-3 inline-block lb-caption uppercase tracking-[0.1em] hover:text-[#d8e0e8]">Open film</Link>}

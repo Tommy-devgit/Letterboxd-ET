@@ -4,10 +4,10 @@ import Link from "next/link";
 import { Clapperboard, Heart, ListPlus, MessageSquare, Star } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { ErrorState } from "@/components/common/error-state";
+import { RatingStars } from "@/components/common/rating-stars";
 import { Skeleton } from "@/components/ui/skeleton";
 import { activityApi } from "@/lib/api";
 import { keys } from "@/lib/query-keys";
-import { formatStarRating } from "@/lib/utils";
 import { ProtectedRoute } from "@/components/auth/protected-route";
 
 const icons = { watched: Clapperboard, rated: Star, reviewed: MessageSquare, watchlisted: Heart, listed: ListPlus };
@@ -32,7 +32,7 @@ function ActivityContent() {
           <Link key={item.id} href={href} className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-[#131d26]">
             <Icon className="h-4 w-4 shrink-0 text-[#54b948]" />
             <p className="min-w-0 flex-1 text-sm text-[#9aa8b5]"><span className="font-semibold text-[#d8e0e8]">{item.user.username}</span> {item.type === "watchlisted" ? "added to watchlist" : item.type} <span className="font-semibold text-[#cfd8e1]">{subject}</span></p>
-            <span className="lb-caption shrink-0">{item.rating ? formatStarRating(item.rating) : new Date(item.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
+            {item.rating ? <RatingStars rating={item.rating} size="xs" showValue className="shrink-0" /> : <span className="lb-caption shrink-0">{new Date(item.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>}
           </Link>
         ); })}
       </div>

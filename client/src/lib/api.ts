@@ -120,6 +120,8 @@ export const authApi = {
   me: () => api.get<User>("/auth/me").then((r) => r.data),
   forgotPassword: (dto: { email: string }) =>
     api.post("/auth/forgot-password", dto).then((r) => r.data),
+  changePassword: (dto: { currentPassword: string; newPassword: string }) =>
+    api.patch<{ success: true; message: string }>("/auth/change-password", dto).then((r) => r.data),
 };
 
 export const ratingsApi = {

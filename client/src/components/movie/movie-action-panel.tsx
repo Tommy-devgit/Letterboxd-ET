@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { BookmarkCheck, BookmarkPlus, Send, Star } from "lucide-react";
+import { RatingStars } from "@/components/common/rating-stars";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/toast";
 import { ratingsApi, reviewsApi, watchlistApi } from "@/lib/api";
 import { keys } from "@/lib/query-keys";
-import { formatStarRating } from "@/lib/utils";
 import { useAuthStore } from "@/store/auth";
 import type { MovieReview } from "@/types";
 
@@ -21,10 +22,11 @@ interface MovieActionPanelProps {
 
 export function MovieActionPanel({ movieId, movieSlug, reviews }: MovieActionPanelProps) {
   const { user } = useAuthStore();
+  const toast = useToast();
   const queryClient = useQueryClient();
-  const [rating, setRating] = useState<number>(0);
-  const [content, setContent] = useState("");
-  const [watchlisted, setWatchlisted] = useState(false);
+  const [ratingOverride, setRatingOverride] = useState<number | null>(null);
+  const [contentOverride, setContentOverride] = useState<string | null>(null);
+  const [watchlistedOverride, setWatchlistedOverride] = useState<boolean | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const mine = useMemo(() => reviews.find((review) => review.user.id === user?.id), [reviews, user?.id]);
 
@@ -40,19 +42,9 @@ export function MovieActionPanel({ movieId, movieSlug, reviews }: MovieActionPan
     enabled: Boolean(user),
   });
 
-  useEffect(() => {
-    if (myRating.data?.rating) setRating(myRating.data.rating);
-  }, [myRating.data?.rating]);
-
-  useEffect(() => {
-    if (mine?.content) setContent(mine.content);
-  }, [mine?.content]);
-
-  useEffect(() => {
-    if (myWatchlist.data) {
-      setWatchlisted(myWatchlist.data.data.some((entry) => entry.movie.id === movieId));
-    }
-  }, [movieId, myWatchlist.data]);
+  const rating = ratingOverride ?? myRating.data?.rating ?? 0;
+  const content = contentOverride ?? mine?.content ?? "";
+  const watchlisted = watchlistedOverride ?? myWatchlist.data?.data.some((entry) => entry.movie.id === movieId) ?? false;
 
   async function invalidateMovie() {
     await Promise.all([
@@ -64,11 +56,14 @@ export function MovieActionPanel({ movieId, movieSlug, reviews }: MovieActionPan
 
   async function submitRating(value: number) {
     if (!user) return;
-    setRating(value);
+    setRatingOverride(value);
     setBusy("rating");
     try {
       await ratingsApi.rate(movieId, { userId: user.id, rating: value });
       await invalidateMovie();
+      toast.success({ title: "Rating saved" });
+    } catch {
+      toast.error({ title: "Could not save rating" });
     } finally {
       setBusy(null);
     }
@@ -80,8 +75,11 @@ export function MovieActionPanel({ movieId, movieSlug, reviews }: MovieActionPan
     try {
       if (watchlisted) await watchlistApi.remove(movieId, user.id);
       else await watchlistApi.add(movieId, user.id);
-      setWatchlisted((value) => !value);
+      setWatchlistedOverride(!watchlisted);
       await queryClient.invalidateQueries({ queryKey: keys.watchlist.all });
+      toast.success({ title: watchlisted ? "Removed from watchlist" : "Watchlist updated" });
+    } catch {
+      toast.error({ title: "Could not update watchlist" });
     } finally {
       setBusy(null);
     }
@@ -93,6 +91,9 @@ export function MovieActionPanel({ movieId, movieSlug, reviews }: MovieActionPan
     try {
       await reviewsApi.create({ userId: user.id, movieId, content: content.trim() });
       await invalidateMovie();
+      toast.success({ title: mine ? "Review updated" : "Review created" });
+    } catch {
+      toast.error({ title: "Could not save review" });
     } finally {
       setBusy(null);
     }
@@ -131,7 +132,7 @@ export function MovieActionPanel({ movieId, movieSlug, reviews }: MovieActionPan
                   : "border-border-muted text-text-muted hover:border-[#54b948]/50 hover:text-[#d8e0e8]"
               }`}
             >
-              {formatStarRating(value)}
+              <RatingStars rating={value} size="xs" showValue />
             </button>
           ))}
         </div>
@@ -147,7 +148,7 @@ export function MovieActionPanel({ movieId, movieSlug, reviews }: MovieActionPan
         </label>
         <textarea
           value={content}
-          onChange={(event) => setContent(event.target.value)}
+          onChange={(event) => setContentOverride(event.target.value)}
           className="mt-3 min-h-28 w-full rounded-[4px] border border-border-muted bg-[#0b1117] p-3 text-sm leading-6 text-[#d8e0e8] outline-none transition-colors focus:border-[#54b948]"
           placeholder="Share what stayed with you after watching..."
         />

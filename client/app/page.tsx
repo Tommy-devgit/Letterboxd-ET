@@ -1,17 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { Activity, Clapperboard, Heart, ListPlus, MessageSquare, Play, Star } from "lucide-react";
+import { Clapperboard, Heart, ListPlus, MessageSquare, Play, Star } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { ErrorState } from "@/components/common/error-state";
-import { MovieCard } from "@/components/movie/movie-card";
+import { RatingStars } from "@/components/common/rating-stars";
 import { MovieCarousel, MovieCarouselSkeleton } from "@/components/movie/movie-carousel";
 import { MovieGrid, MovieGridSkeleton } from "@/components/movie/movie-grid";
 import { MoviePoster } from "@/components/movie/movie-poster";
 import { useFeaturedMovies, useMovies } from "@/hooks/use-movies";
 import { activityApi, listsApi, peopleApi, reviewsApi } from "@/lib/api";
 import { keys } from "@/lib/query-keys";
-import { cn, formatStarRating, truncate } from "@/lib/utils";
+import { cn, truncate } from "@/lib/utils";
 import type { ActivityItem, List, MovieReview, MovieSummary, PersonSummary } from "@/types";
 
 function SectionHeader({ title, href }: { title: string; href?: string }) {
@@ -37,7 +37,7 @@ function ReviewsSection({ reviews }: { reviews: MovieReview[] }) {
             <div className="mb-2 flex items-center gap-2">
               <span className="grid h-7 w-7 place-items-center rounded-full bg-[#1d2a35] text-xs font-bold text-[#9aa8b5]">{review.user.username.slice(0, 2).toUpperCase()}</span>
               <div className="min-w-0"><p className="text-sm font-semibold text-[#d8e0e8]">{review.user.username}</p><p className="lb-caption">reviewed {review.movie?.title ?? "a film"}</p></div>
-              <div className="ml-auto text-xs font-semibold text-[#54b948]">{formatStarRating(review.rating)}</div>
+            <RatingStars rating={review.rating} size="xs" showValue className="ml-auto" />
             </div>
             <p className="lb-body line-clamp-3 text-[0.88rem]">{review.content}</p>
             <div className="mt-3 flex items-center gap-4 lb-caption"><span>{review.likesCount ?? 0} likes</span><span>{new Date(review.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span></div>
@@ -90,7 +90,7 @@ function TrailerSection({ movies }: { movies: MovieSummary[] }) {
 
 function ActivitySection({ items }: { items: ActivityItem[] }) {
   const icons = { watched: Clapperboard, rated: Star, reviewed: MessageSquare, watchlisted: Heart, listed: ListPlus };
-  return <section className="mt-8"><SectionHeader title="Community Activity" href="/activity" /><div className="divide-y divide-border-muted rounded-[4px] border border-border-muted bg-[#101820]">{items.slice(0, 10).map((item) => { const Icon = icons[item.type]; const subject = item.movie?.title ?? item.list?.title ?? "a film"; return <div key={item.id} className="flex items-center gap-3 px-3 py-2.5"><Icon className="h-4 w-4 shrink-0 text-[#54b948]" /><p className="min-w-0 flex-1 text-sm text-[#9aa8b5]"><span className="font-semibold text-[#d8e0e8]">{item.user.username}</span> {item.type === "watchlisted" ? "added to watchlist" : item.type} <span className="font-semibold text-[#cfd8e1]">{subject}</span></p><span className="lb-caption shrink-0">{item.rating ? formatStarRating(item.rating) : new Date(item.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span></div>; })}</div></section>;
+  return <section className="mt-8"><SectionHeader title="Community Activity" href="/activity" /><div className="divide-y divide-border-muted rounded-[4px] border border-border-muted bg-[#101820]">{items.slice(0, 10).map((item) => { const Icon = icons[item.type]; const subject = item.movie?.title ?? item.list?.title ?? "a film"; return <div key={item.id} className="flex items-center gap-3 px-3 py-2.5"><Icon className="h-4 w-4 shrink-0 text-[#54b948]" /><p className="min-w-0 flex-1 text-sm text-[#9aa8b5]"><span className="font-semibold text-[#d8e0e8]">{item.user.username}</span> {item.type === "watchlisted" ? "added to watchlist" : item.type} <span className="font-semibold text-[#cfd8e1]">{subject}</span></p>{item.rating ? <RatingStars rating={item.rating} size="xs" showValue className="shrink-0" /> : <span className="lb-caption shrink-0">{new Date(item.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>}</div>; })}</div></section>;
 }
 
 export default function HomePage() {

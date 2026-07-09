@@ -1,6 +1,8 @@
-import { Body, Controller, Get, Post, Req, Res } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { CurrentUser, type CurrentUser as CurrentUserType } from './current-user.decorator';
+import { AuthGuard } from './auth.guard';
 import { AuthService } from './auth.service';
-import { ForgotPasswordDto, LoginDto, RegisterDto } from './dto/auth.dto';
+import { ChangePasswordDto, ForgotPasswordDto, LoginDto, RegisterDto } from './dto/auth.dto';
 
 const refreshCookieName = 'lbxd_et_refresh';
 const sessionCookieName = 'lbxd_et_session';
@@ -58,6 +60,12 @@ export class AuthController {
   @Post('forgot-password')
   preparePasswordReset(@Body() dto: ForgotPasswordDto) {
     return this.authService.describePasswordReset(dto);
+  }
+
+  @Patch('change-password')
+  @UseGuards(AuthGuard)
+  changePassword(@CurrentUser() user: CurrentUserType, @Body() dto: ChangePasswordDto) {
+    return this.authService.changePassword(user.id, dto);
   }
 
   private setSessionCookies(response: CookieResponse, refreshToken: string) {

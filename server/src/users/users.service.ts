@@ -53,14 +53,19 @@ export class UsersService {
         },
         reviews: {
           include: {
-            movie: { select: { id: true, slug: true, title: true, posterUrl: true, releaseDate: true } },
+            movie: { select: { id: true, slug: true, title: true, posterUrl: true, releaseDate: true, runtimeMinutes: true } },
           },
           orderBy: { createdAt: 'desc' },
           take: 12,
         },
+        ratings: {
+          select: { rating: true, updatedAt: true, movie: { select: { id: true, slug: true, title: true, posterUrl: true, releaseDate: true } } },
+          orderBy: { updatedAt: 'desc' },
+          take: 24,
+        },
         diaryEntries: {
           include: {
-            movie: { select: { id: true, slug: true, title: true, posterUrl: true, releaseDate: true, averageRating: true } },
+            movie: { select: { id: true, slug: true, title: true, posterUrl: true, releaseDate: true, averageRating: true, runtimeMinutes: true } },
           },
           orderBy: { watchedAt: 'desc' },
           take: 12,

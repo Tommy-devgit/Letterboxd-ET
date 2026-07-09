@@ -5,8 +5,10 @@ import { useState } from "react";
 import { Edit3, Heart, Save, Trash2, X } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { RatingStars } from "@/components/common/rating-stars";
+import { useToast } from "@/components/ui/toast";
 import { reviewsApi } from "@/lib/api";
-import { formatDateShort, formatStarRating } from "@/lib/utils";
+import { formatDateShort } from "@/lib/utils";
 import { useAuthStore } from "@/store/auth";
 import type { MovieReview } from "@/types";
 
@@ -17,6 +19,7 @@ interface ReviewCardProps {
 
 export function ReviewCard({ review, onChanged }: ReviewCardProps) {
   const { user } = useAuthStore();
+  const toast = useToast();
   const [editing, setEditing] = useState(false);
   const [content, setContent] = useState(review.content);
   const [busy, setBusy] = useState(false);
@@ -29,7 +32,10 @@ export function ReviewCard({ review, onChanged }: ReviewCardProps) {
     try {
       await reviewsApi.update(review.id, { userId: user?.id, content });
       setEditing(false);
+      toast.success({ title: "Review updated" });
       onChanged?.();
+    } catch {
+      toast.error({ title: "Could not update review" });
     } finally {
       setBusy(false);
     }
@@ -39,7 +45,10 @@ export function ReviewCard({ review, onChanged }: ReviewCardProps) {
     setBusy(true);
     try {
       await reviewsApi.delete(review.id, user?.id);
+      toast.success({ title: "Review deleted" });
       onChanged?.();
+    } catch {
+      toast.error({ title: "Could not delete review" });
     } finally {
       setBusy(false);
     }
@@ -72,7 +81,7 @@ export function ReviewCard({ review, onChanged }: ReviewCardProps) {
           </Link>
           <p className="text-xs text-text-muted">{formatDateShort(review.createdAt)}</p>
         </div>
-        {review.rating ? <span className="shrink-0 text-xs font-semibold text-[#54b948]">{formatStarRating(review.rating)}</span> : null}
+        {review.rating ? <RatingStars rating={review.rating} size="xs" showValue className="shrink-0" /> : null}
       </div>
 
       {editing ? (

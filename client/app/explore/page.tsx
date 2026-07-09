@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useState, useCallback } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Search, SlidersHorizontal, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -35,7 +35,6 @@ const LANGUAGES: { value: LanguageCode; label: string }[] = [
 
 function ExploreContent() {
   const searchParams = useSearchParams();
-  const router = useRouter();
 
   const [query, setQuery] = useState(searchParams.get("q") ?? "");
   const [genre, setGenre] = useState(searchParams.get("genre") ?? "");

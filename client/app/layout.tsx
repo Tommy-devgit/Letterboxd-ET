@@ -5,6 +5,7 @@ import { QueryProvider } from "@/providers/query-provider";
 import { AuthProvider } from "@/providers/auth/auth-provider";
 import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
+import { ToastProvider } from "@/components/ui/toast";
 
 const plexSans = IBM_Plex_Sans({
   variable: "--font-plex-sans",
@@ -46,9 +47,11 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-background text-foreground antialiased">
         <QueryProvider>
           <AuthProvider>
-            <Navbar />
-            <main className="flex-1">{children}</main>
-            <Footer />
+            <ToastProvider>
+              <Navbar />
+              <main className="flex-1">{children}</main>
+              <Footer />
+            </ToastProvider>
           </AuthProvider>
         </QueryProvider>
       </body>

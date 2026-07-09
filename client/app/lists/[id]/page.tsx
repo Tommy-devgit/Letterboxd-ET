@@ -6,12 +6,13 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Save, Trash2, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { ErrorState } from "@/components/common/error-state";
+import { RatingStars } from "@/components/common/rating-stars";
 import { MoviePoster } from "@/components/movie/movie-poster";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { listsApi, moviesApi } from "@/lib/api";
 import { keys } from "@/lib/query-keys";
-import { formatDateShort, formatStarRating } from "@/lib/utils";
+import { formatDateShort } from "@/lib/utils";
 import { useAuthStore } from "@/store/auth";
 
 export default function ListDetailPage() {
@@ -158,7 +159,7 @@ export default function ListDetailPage() {
             <Link href={`/movie/${item.movie.slug}`} className="block">
               <div className="relative aspect-[2/3] overflow-hidden rounded-[4px] bg-surface-raised"><MoviePoster src={item.movie.posterUrl} alt={item.movie.title} fill sizes="240px" /></div>
               <p className="mt-3 text-sm font-semibold text-[#d8e0e8] group-hover:text-white">{index + 1}. {item.movie.title}</p>
-              <p className="mt-1 text-xs text-[#54b948]">{formatStarRating(item.movie.averageRating)}</p>
+              <RatingStars rating={item.movie.averageRating} size="xs" showValue className="mt-1" />
             </Link>
             {owner ? <Button className="mt-3 w-full" size="sm" variant="outline" onClick={() => removeMovie(item.movie.id)} disabled={busy}>Remove</Button> : null}
           </div>

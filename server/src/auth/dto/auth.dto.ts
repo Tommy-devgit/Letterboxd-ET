@@ -27,6 +27,16 @@ export class ForgotPasswordDto {
   email!: string;
 }
 
+export class ChangePasswordDto {
+  @IsString()
+  @Length(8, 128)
+  currentPassword!: string;
+
+  @IsString()
+  @Length(8, 128)
+  newPassword!: string;
+}
+
 export type AuthTokenPayload = {
   sub: string;
   email: string;
