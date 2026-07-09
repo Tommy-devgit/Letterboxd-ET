@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import type { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -65,7 +66,9 @@ const watchlistMovieInclude = {
   _count: { select: { reviews: true } },
 } as const;
 
-function toMovieSummary(movie: any) {
+type WatchlistMovie = Prisma.MovieGetPayload<{ include: typeof watchlistMovieInclude }>;
+
+function toMovieSummary(movie: WatchlistMovie) {
   return {
     id: movie.id,
     slug: movie.slug,
@@ -76,7 +79,7 @@ function toMovieSummary(movie: any) {
     posterUrl: movie.posterUrl ?? null,
     averageRating: movie.averageRating ?? 0,
     reviewCount: movie._count?.reviews ?? 0,
-    genres: movie.genres?.map((entry: any) => entry.genre.name) ?? [],
-    directors: movie.credits?.map((credit: any) => credit.person.fullName) ?? [],
+    genres: movie.genres.map((entry) => entry.genre.name),
+    directors: movie.credits.map((credit) => credit.person.fullName),
   };
 }

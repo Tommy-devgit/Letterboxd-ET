@@ -1,4 +1,4 @@
-import { ContentType, CreditRole, PrismaClient, SourceName } from "@prisma/client";
+import { CreditRole, PrismaClient } from "@prisma/client";
 import { randomBytes, scryptSync } from "crypto";
 
 const prisma = new PrismaClient();
@@ -56,66 +56,6 @@ async function main() {
       }),
     ),
   );
-
-  const fallbackMovies = [
-    ["Teza", "A scholar returns home and confronts memory, exile, and political violence.", 2008, 140, "Drama"],
-    ["Difret", "A young girl's legal fight becomes a landmark story of courage and justice.", 2014, 99, "Drama"],
-    ["Lamb", "A boy and his lamb move through grief, family duty, and rural tenderness.", 2015, 94, "Family"],
-    ["Faya Dayi", "A hypnotic documentary portrait of khat, ritual, and generational longing.", 2021, 120, "Documentary"],
-    ["The Athlete", "The life and final journey of Olympic marathon champion Abebe Bikila.", 2009, 92, "Biography"],
-    ["Price of Love", "A taxi driver and a sex worker navigate danger, intimacy, and survival in Addis Ababa.", 2015, 99, "Romance"],
-    ["Crumbs", "A surreal post-apocalyptic fable built from pop culture fragments and Ethiopian landscapes.", 2015, 68, "Sci-Fi"],
-    ["Harvest: 3,000 Years", "A landmark rural drama about labor, hierarchy, and resistance.", 1976, 150, "Drama"],
-    ["Fig Tree", "A coming-of-age story shaped by war, migration, and first love.", 2018, 93, "Drama"],
-    ["Running Against the Wind", "Two childhood friends chase diverging dreams across Ethiopia.", 2019, 116, "Sport"],
-    ["Sweetness in the Belly", "A diasporic drama of belonging, faith, and displacement.", 2019, 110, "Drama"],
-    ["Red Leaves", "A lonely Ethiopian immigrant in Israel wrestles with family and identity.", 2014, 80, "Drama"],
-  ] as const;
-
-  const movieCount = await prisma.movie.count();
-  if (movieCount < fallbackMovies.length) {
-    for (const [title, synopsis, year, runtimeMinutes, genreName] of fallbackMovies) {
-      const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-      const genre = await prisma.genre.upsert({
-        where: { name: genreName },
-        update: {},
-        create: { name: genreName },
-      });
-
-      const movie = await prisma.movie.upsert({
-        where: { slug },
-        update: { synopsis, runtimeMinutes },
-        create: {
-          title,
-          slug,
-          synopsis,
-          runtimeMinutes,
-          releaseDate: new Date(`${year}-01-01T00:00:00.000Z`),
-          countryId: country.id,
-          languageId: languages[0].id,
-          contentType: ContentType.MOVIE,
-        },
-      });
-
-      await prisma.movieGenre.upsert({
-        where: { movieId_genreId: { movieId: movie.id, genreId: genre.id } },
-        update: {},
-        create: { movieId: movie.id, genreId: genre.id },
-      });
-
-      await prisma.movieSource.upsert({
-        where: { id: `${movie.id}-manual-source` },
-        update: {},
-        create: {
-          id: `${movie.id}-manual-source`,
-          movieId: movie.id,
-          sourceName: SourceName.MANUAL,
-          sourceUrl: "https://letterboxd-et.local/seed",
-          scrapedData: { seeded: true },
-        },
-      });
-    }
-  }
 
   const movies = await prisma.movie.findMany({
     take: 40,

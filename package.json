@@ -21,6 +21,7 @@
     "db:deploy": "npm --prefix server run db:deploy",
     "db:seed": "npm --prefix server run db:seed",
     "db:import:etmdb": "npm --prefix server run db:import:etmdb",
+    "db:remove:fallback": "npm --prefix server run db:remove:fallback",
     "db:hydrate": "npm --prefix server run db:hydrate",
     "db:setup": "npm --prefix server run db:setup",
     "db:studio": "npm --prefix server run db:studio"

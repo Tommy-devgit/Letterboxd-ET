@@ -8,6 +8,9 @@ export type CurrentUser = {
   bio: string | null;
 };
 
+type AuthenticatedRequest = { user?: CurrentUser };
+
 export const CurrentUser = createParamDecorator((_data: unknown, context: ExecutionContext) => {
-  return context.switchToHttp().getRequest().user as CurrentUser;
+  const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
+  return request.user as CurrentUser;
 });
