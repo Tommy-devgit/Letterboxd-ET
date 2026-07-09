@@ -13,6 +13,7 @@ A scalable Ethiopian cinema discovery, tracking, and review platform.
 - Storage: Cloudflare R2 for posters, avatars, and cover images
 - Caching: Redis for trending movies, popular reviews, and recommendation data
 - Deployment: Vercel for the client, Railway or Render for the API, Neon for Postgres
+- Movie API From Sodere,TMDB, YOUTUBE
 
 ## Structure
 
