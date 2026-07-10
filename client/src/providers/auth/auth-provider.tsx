@@ -26,20 +26,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const restoreSession = async () => {
       try {
         if (token) {
-          const currentUser = await authApi.me();
-          if (active) login(currentUser, token);
+          try {
+            const currentUser = await authApi.me();
+            if (active) login(currentUser, token);
+          } catch {
+            if (!hasSessionCookie()) {
+              if (active) clearAuth();
+              return;
+            }
+            const session = await authApi.refresh();
+            if (active) login(session.user, session.accessToken);
+          }
+          return;
+        }
+
+        if (!hasSessionCookie()) {
+          if (active) clearAuth();
           return;
         }
 
         const session = await authApi.refresh();
         if (active) login(session.user, session.accessToken);
       } catch {
-        try {
-          const session = await authApi.refresh();
-          if (active) login(session.user, session.accessToken);
-        } catch {
-          if (active) clearAuth();
-        }
+        if (active) clearAuth();
       } finally {
         if (active) setReady(true);
       }
@@ -65,6 +74,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+function hasSessionCookie() {
+  if (typeof document === "undefined") return false;
+  return document.cookie.split(";").some((part) => part.trim().startsWith("lbxd_et_session="));
 }
 
 export function useAuth() {

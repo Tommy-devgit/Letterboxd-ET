@@ -1,9 +1,19 @@
 import type { NextConfig } from "next";
 import path from "node:path";
 
+const apiProxyTarget = process.env.API_PROXY_TARGET ?? "https://letterboxd-et-serverside.vercel.app/api";
+
 const nextConfig: NextConfig = {
   turbopack: {
     root: path.resolve(process.cwd(), ".."),
+  },
+  async rewrites() {
+    return [
+      {
+        source: "/api/:path*",
+        destination: `${apiProxyTarget}/:path*`,
+      },
+    ];
   },
   images: {
     remotePatterns: [
