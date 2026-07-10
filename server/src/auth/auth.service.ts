@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConflictException, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createHmac, randomBytes, scrypt as scryptCallback, timingSafeEqual } from 'crypto';
 import { promisify } from 'util';
@@ -14,6 +14,8 @@ type JwtPayload = AuthTokenPayload & { typ: TokenKind; iat: number; exp: number;
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly config: ConfigService,
@@ -22,46 +24,63 @@ export class AuthService {
   async register(dto: RegisterDto) {
     const email = dto.email.trim().toLowerCase();
     const username = dto.username.trim().toLowerCase();
+    this.logger.log(`Register attempt email=${email} username=${username} jwtSecretConfigured=${Boolean(this.config.get<string>('JWT_SECRET'))}`);
     const existing = await this.prisma.user.findFirst({ where: { OR: [{ email }, { username }] } });
     if (existing) throw new ConflictException('Email or username is already registered');
+
+    const passwordHash = await this.hashPassword(dto.password);
+    this.logger.debug(`Register password hash generated email=${email} scheme=${this.hashScheme(passwordHash)}`);
 
     const user = await this.prisma.user.create({
       data: {
         email,
         username,
-        passwordHash: await this.hashPassword(dto.password),
+        passwordHash,
       },
       select: authUserSelect,
     });
 
-    return this.createSession(user);
+    const session = this.createSession(user);
+    this.logger.log(`Register session created userId=${user.id} accessTokenIssued=${Boolean(session.accessToken)} refreshTokenIssued=${Boolean(session.refreshToken)}`);
+    return session;
   }
 
   async login(dto: LoginDto) {
     const email = dto.email.trim().toLowerCase();
+    this.logger.log(`Login attempt email=${email} jwtSecretConfigured=${Boolean(this.config.get<string>('JWT_SECRET'))}`);
     const user = await this.prisma.user.findUnique({ where: { email } });
-    if (!user || !(await this.verifyPassword(dto.password, user.passwordHash))) {
+    this.logger.log(`Login lookup email=${email} userFound=${Boolean(user)} hashScheme=${user ? this.hashScheme(user.passwordHash) : 'none'}`);
+    const passwordValid = user ? await this.verifyPassword(dto.password, user.passwordHash) : false;
+    this.logger.log(`Login password comparison email=${email} valid=${passwordValid}`);
+    if (!user || !passwordValid) {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    return this.createSession({
+    const session = this.createSession({
       id: user.id,
       username: user.username,
       email: user.email,
       profilePicture: user.profilePicture,
       bio: user.bio,
     });
+    this.logger.log(`Login session created userId=${user.id} accessTokenIssued=${Boolean(session.accessToken)} refreshTokenIssued=${Boolean(session.refreshToken)}`);
+    return session;
   }
 
   async refresh(refreshToken: string | undefined) {
+    this.logger.log(`Refresh attempt tokenReceived=${Boolean(refreshToken)} jwtSecretConfigured=${Boolean(this.config.get<string>('JWT_SECRET'))}`);
     if (!refreshToken) throw new UnauthorizedException('Missing refresh token');
     const payload = this.verifyToken(refreshToken, 'refresh');
+    this.logger.log(`Refresh token verified userId=${payload.sub}`);
     const user = await this.prisma.user.findUnique({ where: { id: payload.sub }, select: authUserSelect });
     if (!user) throw new UnauthorizedException('User no longer exists');
-    return this.createSession(user);
+    const session = this.createSession(user);
+    this.logger.log(`Refresh session created userId=${user.id}`);
+    return session;
   }
 
   async me(accessToken: string | undefined) {
+    this.logger.log(`Me attempt tokenReceived=${Boolean(accessToken)} jwtSecretConfigured=${Boolean(this.config.get<string>('JWT_SECRET'))}`);
     if (!accessToken) throw new UnauthorizedException('Missing access token');
     const payload = this.verifyToken(accessToken, 'access');
     return this.userFromAccessPayload(payload);
@@ -139,19 +158,27 @@ export class AuthService {
   }
 
   private verifyToken(token: string, expectedType: TokenKind): JwtPayload {
-    const [encodedHeader, encodedPayload, signature] = token.split('.');
-    if (!encodedHeader || !encodedPayload || !signature) throw new UnauthorizedException('Invalid token');
-    const expected = this.sign(`${encodedHeader}.${encodedPayload}`);
-    const received = Buffer.from(signature);
-    const signed = Buffer.from(expected);
-    if (received.length !== signed.length || !timingSafeEqual(received, signed)) {
-      throw new UnauthorizedException('Invalid token signature');
+    try {
+      const [encodedHeader, encodedPayload, signature] = token.split('.');
+      if (!encodedHeader || !encodedPayload || !signature) throw new UnauthorizedException('Invalid token');
+      const expected = this.sign(`${encodedHeader}.${encodedPayload}`);
+      const received = Buffer.from(signature);
+      const signed = Buffer.from(expected);
+      if (received.length !== signed.length || !timingSafeEqual(received, signed)) {
+        this.logger.warn(`JWT verification failed reason=signature expectedType=${expectedType}`);
+        throw new UnauthorizedException('Invalid token signature');
+      }
+      const payload = JSON.parse(Buffer.from(encodedPayload, 'base64url').toString('utf8')) as JwtPayload;
+      if (payload.typ !== expectedType || payload.iss !== this.issuer || payload.exp < Math.floor(Date.now() / 1000)) {
+        this.logger.warn(`JWT verification failed reason=claims expectedType=${expectedType} receivedType=${payload.typ} issuer=${payload.iss}`);
+        throw new UnauthorizedException('Expired or invalid token');
+      }
+      return payload;
+    } catch (error) {
+      if (error instanceof UnauthorizedException) throw error;
+      this.logger.warn(`JWT verification failed reason=parse expectedType=${expectedType}`);
+      throw new UnauthorizedException('Invalid token');
     }
-    const payload = JSON.parse(Buffer.from(encodedPayload, 'base64url').toString('utf8')) as JwtPayload;
-    if (payload.typ !== expectedType || payload.iss !== this.issuer || payload.exp < Math.floor(Date.now() / 1000)) {
-      throw new UnauthorizedException('Expired or invalid token');
-    }
-    return payload;
   }
 
   private sign(value: string) {
@@ -168,6 +195,10 @@ export class AuthService {
 
   private get issuer() {
     return this.config.get<string>('JWT_ISSUER') ?? 'letterboxd-et';
+  }
+
+  private hashScheme(storedHash: string | null | undefined) {
+    return storedHash?.split(':')[0] || 'missing';
   }
 }
 

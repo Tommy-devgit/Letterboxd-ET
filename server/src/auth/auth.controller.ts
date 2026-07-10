@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Patch, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Logger, Patch, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { CurrentUser, type CurrentUser as CurrentUserType } from './current-user.decorator';
 import { AuthGuard } from './auth.guard';
 import { AuthService } from './auth.service';
@@ -22,6 +22,8 @@ type HeaderRequest = {
 
 @Controller('auth')
 export class AuthController {
+  private readonly logger = new Logger(AuthController.name);
+
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
@@ -40,7 +42,9 @@ export class AuthController {
 
   @Post('refresh')
   async refresh(@Req() request: HeaderRequest, @Res({ passthrough: true }) response: CookieResponse) {
-    const session = await this.authService.refresh(this.getCookie(request, refreshCookieName));
+    const refreshToken = this.getCookie(request, refreshCookieName);
+    this.logger.log(`Refresh endpoint cookieReceived=${Boolean(refreshToken)} cookieHeaderPresent=${Boolean(request.headers?.cookie)}`);
+    const session = await this.authService.refresh(refreshToken);
     this.setSessionCookies(response, session.refreshToken);
     return this.toClientSession(session);
   }
@@ -69,6 +73,10 @@ export class AuthController {
   }
 
   private setSessionCookies(response: CookieResponse, refreshToken: string) {
+    const options = cookieOptions(true);
+    this.logger.log(
+      `Setting auth cookies secure=${options.secure} sameSite=${options.sameSite} domain=${'domain' in options ? options.domain : 'host-only'} path=${options.path}`,
+    );
     response.cookie(refreshCookieName, refreshToken, cookieOptions(true));
     response.cookie(sessionCookieName, '1', cookieOptions(false));
   }
