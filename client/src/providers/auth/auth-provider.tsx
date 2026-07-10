@@ -1,7 +1,5 @@
 "use client";
 
-/* eslint-disable react-hooks/set-state-in-effect */
-
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { authApi } from "@/lib/api";
 import { useAuthStore } from "@/store/auth";
@@ -25,25 +23,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let active = true;
 
-    if (!hasSessionCookie()) {
-      clearAuth();
-      setReady(true);
-      return () => {
-        active = false;
-      };
-    }
+    const restoreSession = async () => {
+      try {
+        if (token) {
+          const currentUser = await authApi.me();
+          if (active) login(currentUser, token);
+          return;
+        }
 
-    authApi
-      .refresh()
-      .then((session) => {
+        const session = await authApi.refresh();
         if (active) login(session.user, session.accessToken);
-      })
-      .catch(() => {
-        if (active && !token) clearAuth();
-      })
-      .finally(() => {
+      } catch {
+        try {
+          const session = await authApi.refresh();
+          if (active) login(session.user, session.accessToken);
+        } catch {
+          if (active) clearAuth();
+        }
+      } finally {
         if (active) setReady(true);
-      });
+      }
+    };
+
+    void restoreSession();
     return () => {
       active = false;
     };
@@ -63,11 +65,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
-
-function hasSessionCookie() {
-  if (typeof document === "undefined") return false;
-  return document.cookie.split(";").some((part) => part.trim().startsWith("lbxd_et_session="));
 }
 
 export function useAuth() {

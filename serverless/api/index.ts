@@ -1,12 +1,19 @@
 let cachedServer: any = null;
 
 const allowedOrigins = new Set(
-  [
+  parseOrigins([
     process.env.CLIENT_URL,
     'https://letterboxd-et-client.vercel.app',
     'http://localhost:3000',
-  ].filter(Boolean),
+  ]),
 );
+
+function parseOrigins(values: Array<string | undefined>) {
+  return values
+    .flatMap((value) => value?.split(',') ?? [])
+    .map((value) => value.trim())
+    .filter(Boolean);
+}
 
 function applyCors(request: any, response: any) {
   const origin = request.headers?.origin;

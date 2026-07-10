@@ -96,10 +96,12 @@ export class AuthController {
 
 function cookieOptions(httpOnly: boolean) {
   const isProduction = process.env.NODE_ENV === 'production';
+  const domain = process.env.AUTH_COOKIE_DOMAIN?.trim();
   return {
     httpOnly,
     sameSite: isProduction ? ('none' as const) : ('lax' as const),
     secure: isProduction,
+    ...(domain ? { domain } : {}),
     path: '/',
     maxAge: refreshMaxAgeMs,
   };

@@ -6,11 +6,11 @@ import { AppModule } from "./app.module";
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const config = app.get(ConfigService);
-  const allowedOrigins = [
+  const allowedOrigins = parseOrigins([
     config.get<string>("CLIENT_URL"),
     "https://letterboxd-et-client.vercel.app",
     "http://localhost:3000"
-  ].filter(Boolean) as string[];
+  ]);
 
   app.enableCors({
     origin: allowedOrigins,
@@ -35,3 +35,10 @@ async function bootstrap() {
 }
 
 void bootstrap();
+
+function parseOrigins(values: Array<string | undefined>) {
+  return values
+    .flatMap((value) => value?.split(",") ?? [])
+    .map((value) => value.trim())
+    .filter(Boolean);
+}

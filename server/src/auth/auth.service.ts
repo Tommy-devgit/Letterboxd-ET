@@ -159,7 +159,11 @@ export class AuthService {
   }
 
   private get secret() {
-    return this.config.get<string>('JWT_SECRET') ?? 'letterboxd-et-dev-secret-change-me';
+    const secret = this.config.get<string>('JWT_SECRET');
+    if (!secret && process.env.NODE_ENV === 'production') {
+      throw new Error('JWT_SECRET must be configured in production');
+    }
+    return secret ?? 'letterboxd-et-dev-secret-change-me';
   }
 
   private get issuer() {
