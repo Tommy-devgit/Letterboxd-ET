@@ -124,6 +124,8 @@ export default async function handler(request: any, response: any) {
         clientUrl: process.env.CLIENT_URL ?? null,
         hasDatabaseUrl: Boolean(databaseUrl),
         databaseUrlLooksLocal: /localhost|127\.0\.0\.1/i.test(databaseUrl),
+        hasJwtSecret: Boolean(process.env.JWT_SECRET),
+        nodeEnv: process.env.NODE_ENV ?? null,
       }),
     );
     return;

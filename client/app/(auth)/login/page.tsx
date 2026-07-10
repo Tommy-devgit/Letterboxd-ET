@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
+import { AxiosError } from "axios";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,8 +29,14 @@ export default function LoginPage() {
       login(session.user, session.accessToken);
       const next = new URLSearchParams(window.location.search).get("next") ?? "/";
       router.replace(next);
-    } catch {
-      setMessage("Invalid email/password, or the backend auth server is not running.");
+    } catch (error) {
+      if (error instanceof AxiosError && error.response?.status === 500) {
+        setMessage("The production auth server is misconfigured. Check JWT_SECRET and backend runtime logs.");
+      } else if (error instanceof AxiosError && error.response?.status === 401) {
+        setMessage("Invalid email or password.");
+      } else {
+        setMessage("Could not reach the backend auth server.");
+      }
     } finally {
       setLoading(false);
     }

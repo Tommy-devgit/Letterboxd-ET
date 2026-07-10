@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
+import { AxiosError } from "axios";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,8 +28,12 @@ export default function RegisterPage() {
       const session = await authApi.register(form);
       login(session.user, session.accessToken);
       router.replace("/");
-    } catch {
-      setMessage("Could not create that account. The email or username may already be registered.");
+    } catch (error) {
+      if (error instanceof AxiosError && error.response?.status === 500) {
+        setMessage("The production auth server is misconfigured. Check JWT_SECRET and backend runtime logs.");
+      } else {
+        setMessage("Could not create that account. The email or username may already be registered.");
+      }
     } finally {
       setLoading(false);
     }
