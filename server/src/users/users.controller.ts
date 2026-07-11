@@ -1,4 +1,4 @@
-import { Body, Controller, ForbiddenException, Get, Param, Patch, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, ForbiddenException, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../auth/auth.guard';
 import { CurrentUser, type CurrentUser as CurrentUserType } from '../auth/current-user.decorator';
 import { ChangePasswordDto, UpdateAccountDto, UpdateUserProfileDto } from './dto/user.dto';
@@ -21,6 +21,34 @@ export class UsersController {
   @Get(':id')
   findById(@Param('id') id: string) {
     return this.usersService.findById(id);
+  }
+
+  @Post(':id/follow')
+  @UseGuards(AuthGuard)
+  follow(@CurrentUser() user: CurrentUserType, @Param('id') id: string) {
+    return this.usersService.follow(user.id, id);
+  }
+
+  @Delete(':id/follow')
+  @UseGuards(AuthGuard)
+  unfollow(@CurrentUser() user: CurrentUserType, @Param('id') id: string) {
+    return this.usersService.unfollow(user.id, id);
+  }
+
+  @Get(':id/follow-status')
+  @UseGuards(AuthGuard)
+  followStatus(@CurrentUser() user: CurrentUserType, @Param('id') id: string) {
+    return this.usersService.followStatus(user.id, id);
+  }
+
+  @Get(':id/followers')
+  followers(@Param('id') id: string, @Query('page') page = 1, @Query('pageSize') pageSize = 24) {
+    return this.usersService.followers(id, +page, +pageSize);
+  }
+
+  @Get(':id/following')
+  following(@Param('id') id: string, @Query('page') page = 1, @Query('pageSize') pageSize = 24) {
+    return this.usersService.following(id, +page, +pageSize);
   }
 
   @Patch(':id/profile')

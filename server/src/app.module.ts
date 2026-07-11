@@ -11,6 +11,7 @@ import { PeopleModule } from './people/people.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { RatingsModule } from './ratings/ratings.module';
 import { ReviewsModule } from './reviews/reviews.module';
+import { SearchModule } from './search/search.module';
 import { UsersModule } from './users/users.module';
 import { WatchlistModule } from './watchlist/watchlist.module';
 
@@ -25,6 +26,7 @@ import { WatchlistModule } from './watchlist/watchlist.module';
     PeopleModule,
     IngestionModule,
     ReviewsModule,
+    SearchModule,
     RatingsModule,
     DiaryModule,
     ListsModule,

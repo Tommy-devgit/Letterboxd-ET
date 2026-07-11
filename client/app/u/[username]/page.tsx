@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { CalendarDays, Eye, Film, Grid2X2, Heart, List, ListIcon, MessageSquare, Pencil, Settings, Share2, Star } from "lucide-react";
+import { CalendarDays, Eye, Film, Grid2X2, Heart, List, ListIcon, MessageSquare, Pencil, Settings, Share2, Star, UserCheck, UserPlus } from "lucide-react";
 import { EmptyState } from "@/components/common/empty-state";
 import { ErrorState } from "@/components/common/error-state";
 import { RatingStars } from "@/components/common/rating-stars";
@@ -44,7 +44,14 @@ function ProfileDashboard({ profile }: { profile: UserProfile }) {
   const isOwnProfile = user?.id === profile.id;
   const [filmView, setFilmView] = useState<ViewMode>("grid");
   const [watchlistSort, setWatchlistSort] = useState<WatchlistSort>("recent");
+  const [followBusy, setFollowBusy] = useState(false);
   const [visible, setVisible] = useState({ films: pageSize, reviews: pageSize, diary: pageSize, lists: pageSize, watchlist: pageSize });
+  const followStatus = useQuery({
+    queryKey: ["follow-status", profile.id, user?.id],
+    queryFn: () => usersApi.followStatus(profile.id),
+    enabled: Boolean(user && !isOwnProfile),
+    retry: false,
+  });
 
   const diary = profile.diaryEntries ?? [];
   const reviews = profile.reviews ?? [];
@@ -63,6 +70,21 @@ function ProfileDashboard({ profile }: { profile: UserProfile }) {
     const url = `${window.location.origin}/u/${profile.username}`;
     void navigator.clipboard?.writeText(url);
     toast.success({ title: "Profile link copied" });
+  }
+
+  async function toggleFollow() {
+    if (!user || isOwnProfile) return;
+    setFollowBusy(true);
+    try {
+      if (followStatus.data?.following) await usersApi.unfollow(profile.id);
+      else await usersApi.follow(profile.id);
+      await followStatus.refetch();
+      toast.success({ title: followStatus.data?.following ? "Unfollowed member" : "Now following" });
+    } catch {
+      toast.error({ title: "Could not update follow" });
+    } finally {
+      setFollowBusy(false);
+    }
   }
 
   return (
@@ -96,7 +118,7 @@ function ProfileDashboard({ profile }: { profile: UserProfile }) {
                   <Button asChild size="sm"><Link href="/settings"><Pencil className="h-4 w-4" />Edit Profile</Link></Button>
                   <Button asChild size="sm" variant="outline"><Link href="/settings"><Settings className="h-4 w-4" />Settings</Link></Button>
                 </>
-              ) : null}
+              ) : user ? <Button size="sm" onClick={toggleFollow} disabled={followBusy || followStatus.isLoading}>{followStatus.data?.following ? <UserCheck className="h-4 w-4" /> : <UserPlus className="h-4 w-4" />}{followStatus.data?.following ? "Following" : "Follow"}</Button> : null}
               <Button size="sm" variant="outline" onClick={shareProfile}><Share2 className="h-4 w-4" />Share</Button>
             </div>
           </div>
@@ -106,8 +128,8 @@ function ProfileDashboard({ profile }: { profile: UserProfile }) {
             <Stat icon={CalendarDays} label="Diary Entries" value={profile._count?.diaryEntries ?? diary.length} />
             <Stat icon={List} label="Lists" value={profile._count?.lists ?? lists.length} />
             <Stat icon={Eye} label="Watchlist" value={profile._count?.watchlist ?? watchlist.length} />
-            <Stat icon={Heart} label="Followers" value={profile._count?.followers ?? 0} />
-            <Stat icon={Heart} label="Following" value={profile._count?.following ?? 0} />
+            <Stat icon={Heart} label="Followers" value={followStatus.data?.followers ?? profile._count?.followers ?? 0} />
+            <Stat icon={Heart} label="Following" value={followStatus.data?.followingCount ?? profile._count?.following ?? 0} />
             <Stat icon={Star} label="Avg Rating" value={averageRating ? averageRating.toFixed(1) : "-"} accent={averageRating ? getRatingColor(averageRating) : undefined} />
           </div>
         </div>

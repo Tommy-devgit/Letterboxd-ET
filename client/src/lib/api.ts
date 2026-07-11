@@ -9,8 +9,11 @@ import type {
   MovieSummary,
   PaginatedResponse,
   PersonSummary,
+  PersonDetail,
   User,
   UserProfile,
+  SearchResults,
+  FollowStatus,
   WatchlistEntry,
 } from "@/types";
 
@@ -97,6 +100,16 @@ export const usersApi = {
     api.patch<User>(`/users/${id}/account`, dto).then((r) => r.data),
   changePassword: (id: string, dto: { currentPassword: string; newPassword: string }) =>
     api.patch<{ success: true }>(`/users/${id}/password`, dto).then((r) => r.data),
+  follow: (id: string) =>
+    api.post<FollowStatus>(`/users/${id}/follow`).then((r) => r.data),
+  unfollow: (id: string) =>
+    api.delete<FollowStatus>(`/users/${id}/follow`).then((r) => r.data),
+  followStatus: (id: string) =>
+    api.get<FollowStatus>(`/users/${id}/follow-status`).then((r) => r.data),
+  followers: (id: string, page = 1, pageSize = 24) =>
+    api.get<PaginatedResponse<User>>(`/users/${id}/followers`, { params: { page, pageSize } }).then((r) => r.data),
+  following: (id: string, page = 1, pageSize = 24) =>
+    api.get<PaginatedResponse<User>>(`/users/${id}/following`, { params: { page, pageSize } }).then((r) => r.data),
 };
 
 export const activityApi = {
@@ -107,10 +120,19 @@ export const activityApi = {
 export const peopleApi = {
   popular: (role?: "ACTOR" | "DIRECTOR", take = 12) =>
     api.get<PersonSummary[]>("/people/popular", { params: { role, take } }).then((r) => r.data),
+  list: (params: { query?: string; role?: "ACTOR" | "DIRECTOR"; page?: number; pageSize?: number } = {}) =>
+    api.get<PaginatedResponse<PersonSummary>>("/people", { params }).then((r) => r.data),
+  get: (id: string) =>
+    api.get<PersonDetail>(`/people/${id}`).then((r) => r.data),
+};
+
+export const searchApi = {
+  global: (query: string, limit = 8) =>
+    api.get<SearchResults>("/search", { params: { query, limit } }).then((r) => r.data),
 };
 
 export const authApi = {
-  login: (dto: { email: string; password: string }) =>
+  login: (dto: { identifier: string; password: string }) =>
     api.post<{ user: User; accessToken: string; expiresIn: number }>("/auth/login", dto).then((r) => r.data),
   register: (dto: { username: string; email: string; password: string }) =>
     api.post<{ user: User; accessToken: string; expiresIn: number }>("/auth/register", dto).then((r) => r.data),

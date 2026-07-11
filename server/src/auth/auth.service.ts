@@ -46,14 +46,17 @@ export class AuthService {
   }
 
   async login(dto: LoginDto) {
-    const email = dto.email.trim().toLowerCase();
-    this.logger.log(`Login attempt email=${email} jwtSecretConfigured=${Boolean(this.config.get<string>('JWT_SECRET'))}`);
-    const user = await this.prisma.user.findUnique({ where: { email } });
-    this.logger.log(`Login lookup email=${email} userFound=${Boolean(user)} hashScheme=${user ? this.hashScheme(user.passwordHash) : 'none'}`);
+    const identifier = (dto.identifier ?? dto.email ?? '').trim().toLowerCase();
+    if (!identifier) throw new UnauthorizedException('Invalid email/username or password');
+    this.logger.log(`Login attempt identifier=${identifier} jwtSecretConfigured=${Boolean(this.config.get<string>('JWT_SECRET'))}`);
+    const user = await this.prisma.user.findFirst({
+      where: { OR: [{ email: identifier }, { username: identifier }] },
+    });
+    this.logger.log(`Login lookup identifier=${identifier} userFound=${Boolean(user)} hashScheme=${user ? this.hashScheme(user.passwordHash) : 'none'}`);
     const passwordValid = user ? await this.verifyPassword(dto.password, user.passwordHash) : false;
-    this.logger.log(`Login password comparison email=${email} valid=${passwordValid}`);
+    this.logger.log(`Login password comparison identifier=${identifier} valid=${passwordValid}`);
     if (!user || !passwordValid) {
-      throw new UnauthorizedException('Invalid email or password');
+      throw new UnauthorizedException('Invalid email/username or password');
     }
 
     const session = this.createSession({

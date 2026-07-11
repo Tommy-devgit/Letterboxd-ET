@@ -15,9 +15,18 @@ type ActivityItem = {
 export class ActivityService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findRecent(limit = 30) {
+  async findForUser(userId: string, limit = 30) {
+    const following = await this.prisma.follow.findMany({
+      where: { followerId: userId },
+      select: { followingId: true },
+    });
+    const followingIds = following.map((item) => item.followingId);
+    if (!followingIds.length) return [];
+
+    const userFilter = { userId: { in: followingIds } };
     const [diary, ratings, reviews, watchlist, lists] = await this.prisma.$transaction([
       this.prisma.diaryEntry.findMany({
+        where: userFilter,
         include: {
           user: { select: publicUserSelect },
           movie: { select: activityMovieSelect },
@@ -26,6 +35,7 @@ export class ActivityService {
         take: limit,
       }),
       this.prisma.rating.findMany({
+        where: userFilter,
         include: {
           user: { select: publicUserSelect },
           movie: { select: activityMovieSelect },
@@ -34,6 +44,7 @@ export class ActivityService {
         take: limit,
       }),
       this.prisma.review.findMany({
+        where: userFilter,
         include: {
           user: { select: publicUserSelect },
           movie: { select: activityMovieSelect },
@@ -42,6 +53,7 @@ export class ActivityService {
         take: limit,
       }),
       this.prisma.watchlist.findMany({
+        where: userFilter,
         include: {
           user: { select: publicUserSelect },
           movie: { select: activityMovieSelect },
@@ -50,6 +62,7 @@ export class ActivityService {
         take: limit,
       }),
       this.prisma.list.findMany({
+        where: userFilter,
         include: { user: { select: publicUserSelect } },
         orderBy: { createdAt: 'desc' },
         take: limit,

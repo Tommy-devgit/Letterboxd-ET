@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { BookmarkCheck, BookmarkPlus, Send, Star } from "lucide-react";
+import { BookmarkCheck, BookmarkPlus, CalendarPlus, Send, Star } from "lucide-react";
 import { RatingStars } from "@/components/common/rating-stars";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
-import { ratingsApi, reviewsApi, watchlistApi } from "@/lib/api";
+import { diaryApi, ratingsApi, reviewsApi, watchlistApi } from "@/lib/api";
 import { keys } from "@/lib/query-keys";
 import { useAuthStore } from "@/store/auth";
 import type { MovieReview } from "@/types";
@@ -27,6 +27,7 @@ export function MovieActionPanel({ movieId, movieSlug, reviews }: MovieActionPan
   const [ratingOverride, setRatingOverride] = useState<number | null>(null);
   const [contentOverride, setContentOverride] = useState<string | null>(null);
   const [watchlistedOverride, setWatchlistedOverride] = useState<boolean | null>(null);
+  const [diary, setDiary] = useState({ watchedAt: new Date().toISOString().slice(0, 10), rating: "", notes: "" });
   const [busy, setBusy] = useState<string | null>(null);
   const mine = useMemo(() => reviews.find((review) => review.user.id === user?.id), [reviews, user?.id]);
 
@@ -99,6 +100,30 @@ export function MovieActionPanel({ movieId, movieSlug, reviews }: MovieActionPan
     }
   }
 
+  async function submitDiary() {
+    if (!user) return;
+    setBusy("diary");
+    try {
+      await diaryApi.add({
+        userId: user.id,
+        movieId,
+        watchedAt: diary.watchedAt,
+        rating: diary.rating ? Number(diary.rating) : undefined,
+        notes: diary.notes.trim() || undefined,
+      });
+      await Promise.all([
+        invalidateMovie(),
+        queryClient.invalidateQueries({ queryKey: keys.diary.all }),
+      ]);
+      toast.success({ title: "Diary entry added" });
+      setDiary((current) => ({ ...current, notes: "" }));
+    } catch {
+      toast.error({ title: "Could not log diary entry" });
+    } finally {
+      setBusy(null);
+    }
+  }
+
   if (!user) {
     return (
       <div className="mb-5 rounded-[4px] border border-border-muted bg-[#101820] p-4">
@@ -157,6 +182,18 @@ export function MovieActionPanel({ movieId, movieSlug, reviews }: MovieActionPan
             <Send className="h-4 w-4" />
             {mine ? "Update review" : "Post review"}
           </Button>
+        </div>
+        <div className="mt-5 border-t border-border-muted pt-4">
+          <p className="lb-section-title flex items-center gap-1.5"><CalendarPlus className="h-3.5 w-3.5 text-[#54b948]" />Log Diary Entry</p>
+          <div className="mt-3 grid gap-2 sm:grid-cols-[160px_120px_minmax(0,1fr)]">
+            <input type="date" value={diary.watchedAt} onChange={(event) => setDiary({ ...diary, watchedAt: event.target.value })} className="h-9 rounded-[4px] border border-border-muted bg-[#0b1117] px-2 text-sm text-[#d8e0e8] outline-none focus:border-[#54b948]" />
+            <select value={diary.rating} onChange={(event) => setDiary({ ...diary, rating: event.target.value })} className="h-9 rounded-[4px] border border-border-muted bg-[#0b1117] px-2 text-sm text-[#d8e0e8] outline-none focus:border-[#54b948]">
+              <option value="">No rating</option>
+              {ratingValues.map((value) => <option key={value} value={value}>{value}</option>)}
+            </select>
+            <input value={diary.notes} onChange={(event) => setDiary({ ...diary, notes: event.target.value })} className="h-9 rounded-[4px] border border-border-muted bg-[#0b1117] px-2 text-sm text-[#d8e0e8] outline-none focus:border-[#54b948]" placeholder="Private note" />
+          </div>
+          <div className="mt-3 flex justify-end"><Button size="sm" variant="outline" onClick={submitDiary} disabled={busy === "diary" || !diary.watchedAt}><CalendarPlus className="h-4 w-4" />Log watched</Button></div>
         </div>
       </div>
     </div>
